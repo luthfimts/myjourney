@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Galeri Kenangan - MyJourney</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background: #f5f7fa;
+            color: #1f2937;
+        }
+
+
+       /* ============================
+   SIDEBAR - SAMA DENGAN DASHBOARD
+============================ */
+
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+
+    width: 240px;
+    height: 100vh;
+
+    background: #111827;
+    color: white;
+
+    padding: 30px 20px;
+}
+
+
+/* LOGO */
+
+.logo {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    margin-bottom: 50px;
+}
+
+
+.logo-icon {
+    width: 42px;
+    height: 42px;
+
+    background: #10b981;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 12px;
+
+    font-size: 20px;
+}
+
+
+.logo h2 {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+
+/* MENU */
+
+.menu {
+    list-style: none;
+}
+
+
+.menu li {
+    margin-bottom: 10px;
+}
+
+
+.menu a {
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    padding: 13px 15px;
+
+    color: #cbd5e1;
+
+    text-decoration: none;
+
+    border-radius: 9px;
+
+    font-size: 16px;
+
+    transition: 0.3s;
+}
+
+
+.menu a:hover {
+    background: #1f2937;
+
+    color: white;
+}
+
+
+.menu .active {
+    background: #10b981;
+
+    color: white;
+}
+
+
+        /* MAIN */
+
+        .main {
+            margin-left: 240px;
+
+            padding: 40px;
+
+            min-height: 100vh;
+        }
+
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+
+        .header h1 {
+            font-size: 30px;
+            margin-bottom: 8px;
+        }
+
+
+        .header p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+
+        /* GALERI */
+
+        .gallery-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(auto-fill, minmax(260px, 1fr));
+
+            gap: 20px;
+        }
+
+
+        .gallery-card {
+            background: white;
+
+            border-radius: 16px;
+
+            overflow: hidden;
+
+            box-shadow:
+                0 5px 20px rgba(0,0,0,0.06);
+
+            transition: 0.3s;
+        }
+
+
+        .gallery-card:hover {
+            transform: translateY(-5px);
+
+            box-shadow:
+                0 10px 30px rgba(0,0,0,0.10);
+        }
+
+
+        .gallery-image {
+            width: 100%;
+            height: 220px;
+
+            overflow: hidden;
+
+            background: #e5e7eb;
+        }
+
+
+        .gallery-image img {
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
+
+            cursor: pointer;
+
+            transition: 0.3s;
+        }
+
+
+        .gallery-image img:hover {
+            transform: scale(1.05);
+        }
+
+
+        .gallery-info {
+            padding: 18px;
+        }
+
+
+        .gallery-info h3 {
+            font-size: 17px;
+
+            margin-bottom: 8px;
+        }
+
+
+        .gallery-info p {
+            color: #6b7280;
+
+            font-size: 13px;
+
+            margin-bottom: 5px;
+        }
+
+
+        .date {
+            color: #10b981 !important;
+
+            font-weight: bold;
+        }
+
+
+        /* EMPTY */
+
+        .empty-gallery {
+            grid-column: 1 / -1;
+
+            text-align: center;
+
+            background: white;
+
+            padding: 70px 20px;
+
+            border-radius: 16px;
+        }
+
+
+        .empty-gallery .icon {
+            font-size: 60px;
+
+            margin-bottom: 15px;
+        }
+
+
+        .empty-gallery h2 {
+            margin-bottom: 10px;
+        }
+
+
+        .empty-gallery p {
+            color: #6b7280;
+        }
+
+
+        /* POPUP FOTO */
+
+        .modal {
+            display: none;
+
+            position: fixed;
+
+            z-index: 999;
+
+            left: 0;
+            top: 0;
+
+            width: 100%;
+            height: 100%;
+
+            background: rgba(0,0,0,0.9);
+
+            justify-content: center;
+            align-items: center;
+        }
+
+
+        .modal img {
+            max-width: 90%;
+            max-height: 85%;
+
+            border-radius: 12px;
+        }
+
+
+        .close {
+            position: absolute;
+
+            top: 25px;
+            right: 35px;
+
+            color: white;
+
+            font-size: 40px;
+
+            cursor: pointer;
+        }
+
+
+        @media(max-width:800px) {
+
+            .sidebar {
+                display: none;
+            }
+
+            .main {
+                margin-left: 0;
+
+                padding: 20px;
+            }
+
+        }
+
+        <!--BUTTON-->
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+/* =============== TOMBOL UNTUK UPLOAD FOTO=========*/
+        .upload-btn{
+            padding: 12px 20px;
+            position: relative;
+            top: -10px;
+            border: none;
+            border-radius: 10px;
+            background: #10b981;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2;
+        }
+
+        .upload-btn:hover{
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+
+        /* =============================
+   POPUP UPLOAD
+============================= */
+
+.upload-modal {
+    display: none;
+
+    position: fixed;
+
+    z-index: 1000;
+
+    left: 0;
+    top: 0;
+
+    width: 100%;
+    height: 100%;
+
+    background: rgba(0, 0, 0, 0.65);
+
+    justify-content: center;
+    align-items: center;
+
+    padding: 20px;
+}
+
+
+.upload-box {
+    width: 100%;
+    max-width: 500px;
+
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    background: white;
+
+    padding: 30px;
+
+    border-radius: 18px;
+}
+
+
+.upload-box h2 {
+    margin-bottom: 7px;
+}
+
+
+.upload-box > p {
+    color: #6b7280;
+
+    font-size: 13px;
+
+    margin-bottom: 20px;
+}
+
+
+.preview-upload {
+    width: 100%;
+    height: 250px;
+
+    background: #f3f4f6;
+
+    border-radius: 12px;
+
+    overflow: hidden;
+
+    margin-bottom: 22px;
+}
+
+
+.preview-upload img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
+
+
+.input-group {
+    margin-bottom: 17px;
+}
+
+
+.input-group label {
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-size: 13px;
+    font-weight: bold;
+}
+
+
+.input-group input {
+    width: 100%;
+
+    padding: 12px 13px;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 8px;
+
+    outline: none;
+}
+
+
+.input-group input:focus {
+    border-color: #10b981;
+}
+
+
+.upload-actions {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    margin-top: 25px;
+}
+
+
+.cancel-upload,
+.save-upload {
+    padding: 11px 18px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    font-weight: bold;
+}
+
+
+.cancel-upload {
+    background: #e5e7eb;
+
+    color: #374151;
+}
+
+
+.save-upload {
+    background: #10b981;
+
+    color: white;
+}
+
+
+.save-upload:hover {
+    background: #059669;
+}
+
+
+/* TOMBOL UNTUK MENGAPUS */
+.gallery-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 8px;
+}
+
+.delete-photo-btn {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #fee2e2;
+    color: #dc2626;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.delete-photo-btn:hover{
+    background: #fecaca;
+}
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="sidebar">
+
+    <div class="logo">
+
+        <div class="logo-icon">
+            ✈
+        </div>
+
+        <h2>
+            MyJourney
+        </h2>
+
+    </div>
+
+
+    <ul class="menu">
+
+        <li>
+            <a href="dashboard.html">
+                🏠
+                Dashboard
+            </a>
+        </li>
+
+        <li>
+            <a href="perjalanan.html">
+                📍
+                Perjalanan
+            </a>
+        </li>
+
+        <li>
+            <a href="tambah.html">
+                ➕
+                Tambah Perjalanan
+            </a>
+        </li>
+
+        <li>
+            <a
+                href="galeri.html"
+                class="active">
+
+                🖼️
+                Galeri Kenangan
+            </a>
+        </li>
+
+    </ul>
+
+</div>
+
+
+
+<div class="main">
+
+    <div class="header">
+
+        <h1>
+            Galeri Kenangan 📸
+        </h1>
+
+        <p>
+            Semua foto dari perjalananmu akan tampil di sini.
+        </p>
+
+    </div>
+
+    <!--TOMBOL UNTUK UPLOAD-->
+    <button 
+        class="upload-btn"
+        onclick="pilihFoto()">
+
+        + Upload Foto
+    </button>
+
+    <input
+        type="file"
+        id="uploadFoto"
+        accept="image/*"
+        hidden>
+    
+
+    <div
+        class="gallery-grid"
+        id="galleryGrid">
+
+    </div>
+
+</div>
+
+<!-- POPUP UPLOAD FOTO -->
+
+<div
+    class="upload-modal"
+    id="uploadModal">
+
+
+    <div class="upload-box">
+
+
+        <h2>
+            Upload Foto Kenangan
+        </h2>
+
+
+        <p>
+            Tambahkan informasi untuk foto ini.
+        </p>
+
+
+        <div class="preview-upload">
+
+            <img
+                id="uploadPreview"
+                src=""
+                alt="Preview Foto">
+
+        </div>
+
+
+        <div class="input-group">
+
+            <label>
+                Judul Foto
+            </label>
+
+            <input
+                type="text"
+                id="judulFoto"
+                placeholder="Contoh: Liburan di Bandung">
+
+        </div>
+
+
+        <div class="input-group">
+
+            <label>
+                Lokasi
+            </label>
+
+            <input
+                type="text"
+                id="lokasiFoto"
+                placeholder="Contoh: Lembang, Bandung">
+
+        </div>
+
+
+        <div class="input-group">
+
+            <label>
+                Tanggal
+            </label>
+
+            <input
+                type="date"
+                id="tanggalFoto">
+
+        </div>
+
+
+        <div class="upload-actions">
+
+            <button
+                class="cancel-upload"
+                onclick="batalUpload()">
+
+                Batal
+
+            </button>
+
+
+            <button
+                class="save-upload"
+                onclick="simpanFoto()">
+
+                Simpan Foto
+
+            </button>
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+
+<div
+    class="modal"
+    id="photoModal">
+
+    <span
+        class="close"
+        onclick="tutupFoto()">
+
+        ×
+
+    </span>
+
+    <img
+        id="modalImage"
+        src="">
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="supabase-config.js"></script>
+
+<script src="galeri.js"></script>
+
+</body>
+
+</html>

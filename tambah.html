@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Tambah Perjalanan - MyJourney</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background: #f4f7f9;
+            color: #1f2937;
+        }
+
+      /* ============================
+   SIDEBAR - SAMA DENGAN DASHBOARD
+============================ */
+
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+
+    width: 240px;
+    height: 100vh;
+
+    background: #111827;
+    color: white;
+
+    padding: 30px 20px;
+}
+
+
+/* LOGO */
+
+.logo {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    margin-bottom: 50px;
+}
+
+
+.logo-icon {
+    width: 42px;
+    height: 42px;
+
+    background: #10b981;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 12px;
+
+    font-size: 20px;
+}
+
+
+.logo h2 {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+
+/* MENU */
+
+.menu {
+    list-style: none;
+}
+
+
+.menu li {
+    margin-bottom: 10px;
+}
+
+
+.menu a {
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    padding: 13px 15px;
+
+    color: #cbd5e1;
+
+    text-decoration: none;
+
+    border-radius: 9px;
+
+    font-size: 16px;
+
+    transition: 0.3s;
+}
+
+
+.menu a:hover {
+    background: #1f2937;
+
+    color: white;
+}
+
+
+.menu .active {
+    background: #10b981;
+
+    color: white;
+}
+
+
+        /* MAIN */
+
+        .main {
+
+            margin-left: 240px;
+
+            min-height: 100vh;
+
+            padding: 40px;
+        }
+
+        .header {
+
+            margin-bottom: 30px;
+        }
+
+        .header a {
+
+            text-decoration: none;
+
+            color: #10b981;
+
+            font-size: 14px;
+        }
+
+        .header h1 {
+
+            margin-top: 15px;
+
+            font-size: 30px;
+        }
+
+        .header p {
+
+            margin-top: 8px;
+
+            color: #6b7280;
+        }
+
+
+        /* FORM */
+
+        .form-card {
+
+            max-width: 850px;
+
+            background: white;
+
+            padding: 35px;
+
+            border-radius: 18px;
+
+            box-shadow:
+                0 5px 25px rgba(0,0,0,0.05);
+        }
+
+        .form-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap: 20px;
+        }
+
+        .form-group {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 8px;
+        }
+
+        .form-group.full {
+
+            grid-column:
+                1 / -1;
+        }
+
+        .form-group label {
+
+            font-size: 14px;
+
+            font-weight: bold;
+
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group textarea {
+
+            width: 100%;
+
+            padding: 13px 14px;
+
+            border: 1px solid #d1d5db;
+
+            border-radius: 9px;
+
+            outline: none;
+
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+
+            border-color: #10b981;
+
+            box-shadow:
+                0 0 0 3px rgba(16,185,129,0.1);
+        }
+
+        textarea {
+
+            min-height: 120px;
+
+            resize: vertical;
+        }
+
+        .button-area {
+
+            display: flex;
+
+            justify-content: flex-end;
+
+            gap: 12px;
+
+            margin-top: 30px;
+        }
+
+        .cancel-btn,
+        .save-btn {
+
+            padding: 13px 22px;
+
+            border: none;
+
+            border-radius: 9px;
+
+            font-size: 14px;
+
+            cursor: pointer;
+
+            font-weight: bold;
+        }
+
+        .cancel-btn {
+
+            background: #e5e7eb;
+
+            color: #374151;
+        }
+
+        .save-btn {
+
+            background: #10b981;
+
+            color: white;
+        }
+
+        .save-btn:hover {
+
+            background: #059669;
+        }
+
+
+        /* RESPONSIVE */
+
+        @media(max-width:800px) {
+
+            .sidebar {
+
+                display: none;
+            }
+
+            .main {
+
+                margin-left: 0;
+
+                padding: 20px;
+            }
+
+            .form-grid {
+
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full {
+
+                grid-column: auto;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="sidebar">
+
+    <div class="logo">
+
+        <div class="logo-icon">
+            ✈
+        </div>
+
+        <h2>
+            MyJourney
+        </h2>
+
+    </div>
+
+
+    <ul class="menu">
+
+        <li>
+
+            <a href="dashboard.html">
+
+                🏠
+
+                <span>
+                    Dashboard
+                </span>
+
+            </a>
+
+        </li>
+
+
+        <li>
+
+            <a
+                href="tambah.html"
+                class="active">
+
+                ➕
+
+                <span>
+                    Tambah Perjalanan
+                </span>
+
+            </a>
+
+        </li>
+
+    </ul>
+
+</div>
+
+
+
+<div class="main">
+
+    <div class="header">
+
+        <a href="dashboard.html">
+
+            ← Kembali ke Dashboard
+
+        </a>
+
+
+        <h1>
+            Tambah Perjalanan
+        </h1>
+
+        <p>
+            Catat tempat yang sudah pernah kamu kunjungi.
+        </p>
+
+    </div>
+
+
+
+    <div class="form-card">
+
+        <form id="journeyForm">
+
+
+            <div class="form-grid">
+
+
+                <div class="form-group">
+
+                    <label>
+                        Nama Tempat
+                    </label>
+
+                    <input
+                        type="text"
+                        id="namaTempat"
+                        placeholder="Contoh: Monas"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Tanggal Kunjungan
+                    </label>
+
+                    <input
+                        type="date"
+                        id="tanggal"
+                        required>
+
+                </div>
+
+
+
+                <div class="form-group">
+
+                    <label>
+                        Kota / Kabupaten
+                    </label>
+
+                    <input
+                        type="text"
+                        id="kota"
+                        placeholder="Contoh: Jakarta Pusat"
+                        required>
+
+                </div>
+
+
+
+                <div class="form-group">
+
+                    <label>
+                        Provinsi
+                    </label>
+
+                    <input
+                        type="text"
+                        id="provinsi"
+                        placeholder="Contoh: DKI Jakarta"
+                        required>
+
+                </div>
+
+
+
+                <div class="form-group full">
+
+                    <label>
+                        Negara
+                    </label>
+
+                    <input
+                        type="text"
+                        id="negara"
+                        value="Indonesia"
+                        required>
+
+                </div>
+
+
+
+                <div class="form-group full">
+
+                    <label>
+                        Catatan Perjalanan
+                    </label>
+
+                    <textarea
+                        id="catatan"
+                        placeholder="Ceritakan sedikit tentang perjalanan ini...">
+                    </textarea>
+
+                </div>
+
+
+            </div>
+
+
+        
+            
+            <div class="button-area">
+
+                <button
+                    type="button"
+                    class="cancel-btn"
+                    onclick="window.location.href='dashboard.html'">
+
+                    Batal
+
+                </button>
+
+
+                <button
+                    type="submit"
+                    class="save-btn">
+
+                    💾 Simpan Perjalanan
+
+                </button>
+
+            </div>
+
+
+        </form>
+
+    </div>
+    </div>
+                </div>
+
+
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="supabase-config.js"></script>
+
+<script src="tambah.js"></script>
+
+
+</body>
+
+</html>

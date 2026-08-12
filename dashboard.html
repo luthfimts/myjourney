@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard - MyJourney</title>
+
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+        }
+
+
+        body {
+
+            background: #f5f7fa;
+
+            color: #1f2937;
+
+        }
+
+
+        /* ============================
+           SIDEBAR
+        ============================ */
+
+        .sidebar {
+
+            position: fixed;
+
+            left: 0;
+            top: 0;
+
+            width: 240px;
+            height: 100vh;
+
+            background: #111827;
+
+            color: white;
+
+            padding: 30px 20px;
+
+        }
+
+
+        .logo {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            margin-bottom: 50px;
+
+        }
+
+
+        .logo-icon {
+
+            width: 42px;
+            height: 42px;
+
+            background: #10b981;
+
+            display: flex;
+
+            justify-content: center;
+            align-items: center;
+
+            border-radius: 12px;
+
+            font-size: 20px;
+
+        }
+
+
+        .logo h2 {
+
+            font-size: 20px;
+
+        }
+
+
+        .menu {
+
+            list-style: none;
+
+        }
+
+
+        .menu li {
+
+            margin-bottom: 10px;
+
+        }
+
+
+        .menu a {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 14px;
+
+            padding: 13px 15px;
+
+            color: #cbd5e1;
+
+            text-decoration: none;
+
+            border-radius: 9px;
+
+            transition: 0.3s;
+
+        }
+
+
+        .menu a:hover {
+
+            background: #1f2937;
+
+            color: white;
+
+        }
+
+
+        .menu .active {
+
+            background: #10b981;
+
+            color: white;
+
+        }
+
+
+        .logout-box {
+
+            position: absolute;
+
+            bottom: 30px;
+
+            left: 20px;
+            right: 20px;
+
+        }
+
+
+        .logout-btn {
+
+            width: 100%;
+
+            padding: 12px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            background: #ef4444;
+
+            color: white;
+
+            cursor: pointer;
+
+            font-weight: bold;
+
+        }
+
+
+        .logout-btn:hover {
+
+            background: #dc2626;
+
+        }
+
+
+
+        /* ============================
+           MAIN
+        ============================ */
+
+        .main {
+
+            margin-left: 240px;
+
+            min-height: 100vh;
+
+            padding: 35px;
+
+        }
+
+
+
+        /* ============================
+           HEADER
+        ============================ */
+
+        .top-header {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-bottom: 35px;
+
+        }
+
+
+        .welcome h1 {
+
+            font-size: 28px;
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .welcome p {
+
+            color: #6b7280;
+
+            font-size: 14px;
+
+        }
+
+
+        .profile {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+        }
+
+
+        .profile-circle {
+
+            width: 45px;
+            height: 45px;
+
+            border-radius: 50%;
+
+            background: #10b981;
+
+            color: white;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-weight: bold;
+
+        }
+
+
+        .profile-name p {
+
+            font-size: 12px;
+
+            color: #777;
+
+            margin-top: 4px;
+
+        }
+
+
+
+        /* ============================
+           HERO
+        ============================ */
+
+        .hero {
+
+            min-height: 250px;
+
+            border-radius: 22px;
+
+            padding: 40px;
+
+            margin-bottom: 30px;
+
+            color: white;
+
+            display: flex;
+
+            align-items: center;
+
+            position: relative;
+
+            overflow: hidden;
+
+
+            background:
+
+                linear-gradient(
+                    110deg,
+                    rgba(17, 24, 39, 0.95),
+                    rgba(16, 185, 129, 0.65)
+                ),
+
+                url("images/travel.jpg");
+
+
+            background-size: cover;
+
+            background-position: center;
+
+        }
+
+
+        .hero-content {
+
+            max-width: 580px;
+
+            position: relative;
+
+            z-index: 2;
+
+        }
+
+
+        .hero h2 {
+
+            font-size: 36px;
+
+            margin-bottom: 15px;
+
+        }
+
+
+        .hero p {
+
+            line-height: 1.7;
+
+            color: #e5e7eb;
+
+            margin-bottom: 25px;
+
+        }
+
+
+        .add-btn {
+
+            padding: 13px 23px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            background: white;
+
+            color: #111827;
+
+            font-size: 14px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.3s;
+
+        }
+
+
+        .add-btn:hover {
+
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 8px 20px
+                rgba(0, 0, 0, 0.20);
+
+        }
+
+
+
+        /* ============================
+           STATISTIK
+        ============================ */
+
+        .stats {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 20px;
+
+            margin-bottom: 30px;
+
+        }
+
+
+        .stat-card {
+
+            background: white;
+
+            padding: 24px;
+
+            border-radius: 16px;
+
+            box-shadow:
+                0 5px 20px
+                rgba(0, 0, 0, 0.05);
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 15px;
+
+        }
+
+
+        .stat-icon {
+
+            width: 52px;
+
+            height: 52px;
+
+            border-radius: 14px;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            background: #ecfdf5;
+
+            font-size: 23px;
+
+            flex-shrink: 0;
+
+        }
+
+
+        .stat-card h3 {
+
+            font-size: 25px;
+
+            margin-bottom: 5px;
+
+        }
+
+
+        .stat-card p {
+
+            font-size: 13px;
+
+            color: #6b7280;
+
+        }
+
+
+
+        /* ============================
+           CONTENT
+        ============================ */
+
+        .content-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                2fr 1fr;
+
+            gap: 25px;
+
+        }
+
+
+        .section {
+
+            background: white;
+
+            padding: 25px;
+
+            border-radius: 16px;
+
+            box-shadow:
+                0 5px 20px
+                rgba(0, 0, 0, 0.05);
+
+        }
+
+
+        .section-header {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-bottom: 23px;
+
+        }
+
+
+        .section-header h3 {
+
+            font-size: 18px;
+
+        }
+
+
+        .section-header a {
+
+            text-decoration: none;
+
+            color: #10b981;
+
+            font-size: 13px;
+
+            font-weight: bold;
+
+        }
+
+
+
+        /* ============================
+           PERJALANAN TERBARU
+        ============================ */
+
+        .journey-item {
+
+            display: flex;
+
+            align-items: center;
+
+            padding: 160px 0;
+
+            border-bottom:
+                1px solid #f0f0f0;
+
+        }
+
+
+        .journey-item:last-child {
+
+            border-bottom: none;
+
+        }
+
+
+        .journey-image {
+
+            width: 80px;
+
+            height: 65px;
+
+            border-radius: 10px;
+
+            background: #ecfdf5;
+
+            margin-right: 16px;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            font-size: 27px;
+
+            flex-shrink: 0;
+
+        }
+
+
+        .journey-info {
+
+            flex: 1;
+
+        }
+
+
+        .journey-info h4 {
+
+            margin-bottom: 7px;
+
+            font-size: 15px;
+
+        }
+
+
+        .journey-info p {
+
+            color: #6b7280;
+
+            font-size: 12px;
+
+            margin-bottom: 5px;
+
+        }
+
+
+        .journey-date {
+
+            color: #10b981 !important;
+
+            font-weight: bold;
+
+        }
+
+
+
+        /* ============================
+           TARGET PERJALANAN
+        ============================ */
+
+        .goal-card {
+
+            text-align: center;
+
+            padding-top: 10px;
+
+        }
+
+
+        .goal-circle {
+
+            width: 160px;
+
+            height: 160px;
+
+            margin: 15px auto 25px;
+
+            border-radius: 50%;
+
+            background: #e5e7eb;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            transition: 0.5s;
+
+        }
+
+
+        .goal-inner {
+
+            width: 122px;
+
+            height: 122px;
+
+            border-radius: 50%;
+
+            background: white;
+
+            display: flex;
+
+            flex-direction: column;
+
+            justify-content: center;
+
+            align-items: center;
+
+        }
+
+
+        .goal-inner h2 {
+
+            font-size: 30px;
+
+            margin-bottom: 3px;
+
+        }
+
+
+        .goal-inner p {
+
+            font-size: 11px;
+
+            color: #6b7280;
+
+        }
+
+
+        .goal-percent {
+
+            margin-top: 6px;
+
+            font-size: 13px;
+
+            color: #10b981;
+
+        }
+
+
+        .goal-text {
+
+            color: #6b7280;
+
+            font-size: 13px;
+
+            line-height: 1.6;
+
+        }
+
+
+
+        /* ============================
+           EMPTY DATA
+        ============================ */
+
+        .empty-journey {
+
+            text-align: center;
+
+            padding: 45px 15px;
+
+        }
+
+
+        .empty-journey .icon {
+
+            font-size: 45px;
+
+            margin-bottom: 15px;
+
+        }
+
+
+        .empty-journey h3 {
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .empty-journey p {
+
+            color: #6b7280;
+
+            font-size: 13px;
+
+        }
+
+
+
+        /* ============================
+           RESPONSIVE
+        ============================ */
+
+        @media(max-width: 1100px) {
+
+            .stats {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+
+            }
+
+
+            .content-grid {
+
+                grid-template-columns: 1fr;
+
+            }
+
+        }
+
+
+        @media(max-width: 750px) {
+
+            .sidebar {
+
+                width: 80px;
+
+                padding: 25px 12px;
+
+            }
+
+
+            .logo h2,
+            .menu span {
+
+                display: none;
+
+            }
+
+
+            .logo {
+
+                justify-content: center;
+
+            }
+
+
+            .menu a {
+
+                justify-content: center;
+
+            }
+
+
+            .main {
+
+                margin-left: 80px;
+
+                padding: 20px;
+
+            }
+
+
+            .profile-name {
+
+                display: none;
+
+            }
+
+
+            .hero {
+
+                padding: 25px;
+
+            }
+
+
+            .hero h2 {
+
+                font-size: 27px;
+
+            }
+
+        }
+
+
+        @media(max-width: 500px) {
+
+            .sidebar {
+
+                display: none;
+
+            }
+
+
+            .main {
+
+                margin-left: 0;
+
+            }
+
+
+            .stats {
+
+                grid-template-columns: 1fr;
+
+            }
+
+        }
+
+
+    </style>
+
+
+</head>
+
+
+<body>
+
+
+
+<!-- ===============================
+     SIDEBAR
+================================ -->
+
+<div class="sidebar">
+
+
+    <div class="logo">
+
+        <div class="logo-icon">
+
+            ✈
+
+        </div>
+
+
+        <h2>
+
+            MyJourney
+
+        </h2>
+
+    </div>
+
+
+
+    <ul class="menu">
+
+
+        <li>
+
+            <a
+                href="dashboard.html"
+                class="active">
+
+                🏠
+
+                <span>
+                    Dashboard
+                </span>
+
+            </a>
+
+        </li>
+
+
+
+        <li>
+
+            <a href="perjalanan.html">
+
+                📍
+
+                <span>
+                    Perjalanan
+                </span>
+
+            </a>
+
+        </li>
+
+
+
+        <li>
+
+            <a href="tambah.html">
+
+                ➕
+
+                <span>
+                    Tambah Perjalanan
+                </span>
+
+            </a>
+
+        </li>
+
+        <!-- GALERI KENANGAN-->
+        <li>
+            <a href="galeri.html">
+                🖼️
+                <span>Galeri Kenangan</span>
+            </a>
+        </li>
+
+    </ul>
+
+
+
+    <div class="logout-box">
+
+        <button
+            class="logout-btn"
+            onclick="logout()">
+
+            Logout
+
+        </button>
+
+    </div>
+
+
+</div>
+
+
+
+
+<!-- ===============================
+     MAIN
+================================ -->
+
+<div class="main">
+
+
+
+    <!-- HEADER -->
+
+    <div class="top-header">
+
+
+        <div class="welcome">
+
+            <h1>
+
+                Selamat Datang 👋
+
+            </h1>
+
+
+            <p>
+
+                Yuk lihat kembali perjalanan
+                yang sudah aku lakukan.
+
+            </p>
+
+        </div>
+
+
+
+        <div class="profile">
+
+
+            <div
+                class="profile-circle"
+                id="profileInitial">
+
+                M
+
+            </div>
+
+
+            <div class="profile-name">
+
+                <strong id="profileUsername">
+
+                    M Luthfi K
+
+                </strong>
+
+
+                <p>
+
+                    My Journey
+
+                </p>
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+
+
+    <!-- HERO -->
+
+    <div class="hero">
+
+
+        <div class="hero-content">
+
+
+            <h2>
+
+                Setiap perjalanan
+                punya cerita.
+
+            </h2>
+
+
+            <p>
+
+                Simpan tempat-tempat yang sudah kamu
+                kunjungi dan jadikan setiap perjalanan
+                sebagai kenangan yang tidak terlupakan.
+
+            </p>
+
+
+            <button
+                class="add-btn"
+                onclick="window.location.href='tambah.html'">
+
+                + Tambah Perjalanan
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+
+
+
+    <!-- ===============================
+         STATISTIK
+    ================================ -->
+
+    <div class="stats">
+
+
+        <!-- TEMPAT -->
+
+        <div class="stat-card">
+
+
+            <div class="stat-icon">
+
+                📍
+
+            </div>
+
+
+            <div>
+
+                <h3 id="totalTempat">
+
+                    0
+
+                </h3>
+
+
+                <p>
+
+                    Tempat Dikunjungi
+
+                </p>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- KOTA -->
+
+        <div class="stat-card">
+
+
+            <div class="stat-icon">
+
+                🏙️
+
+            </div>
+
+
+            <div>
+
+                <h3 id="totalKota">
+
+                    0
+
+                </h3>
+
+
+                <p>
+
+                    Kota
+
+                </p>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- PROVINSI -->
+
+        <div class="stat-card">
+
+
+            <div class="stat-icon">
+
+                🗺️
+
+            </div>
+
+
+            <div>
+
+                <h3 id="totalProvinsi">
+
+                    0
+
+                </h3>
+
+
+                <p>
+
+                    Provinsi
+
+                </p>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- NEGARA -->
+
+        <div class="stat-card">
+
+
+            <div class="stat-icon">
+
+                🌏
+
+            </div>
+
+
+            <div>
+
+                <h3 id="totalNegara">
+
+                    0
+
+                </h3>
+
+
+                <p>
+
+                    Negara
+
+                </p>
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+
+
+    <!-- ===============================
+         BAGIAN BAWAH
+    ================================ -->
+
+    <div class="content-grid">
+
+        <!--GELERI------------------------------------------>
+
+    <div class="section">
+        <div class="section-header">
+
+            <h3>
+                Galeri
+            </h3>
+
+            <a href="galeri.html">
+                Lihat Semua →
+            </a>
+
+
+        </div>
+    </div>
+
+
+
+    
+
+
+
+            <div id="journeyList">
+
+            </div>
+
+
+        </div>
+
+
+
+
+        <!-- TARGET PERJALANAN -->
+
+        <div class="section">
+
+
+            <div class="section-header">
+
+                <h3>
+
+                    Target Perjalanan
+
+                </h3>
+
+            </div>
+
+
+
+            <div class="goal-card">
+
+
+
+                <div
+                    class="goal-circle"
+                    id="goalCircle">
+
+
+                    <div class="goal-inner">
+
+
+                        <h2 id="goalJumlah">
+
+                            0
+
+                        </h2>
+
+
+                        <p>
+
+                            dari
+
+                            <span id="goalTarget">
+
+                                1000
+
+                            </span>
+
+                            tempat
+
+                        </p>
+
+
+                        <strong
+                            class="goal-percent"
+                            id="goalPersen">
+
+                            0%
+
+                        </strong>
+
+
+                    </div>
+
+
+                </div>
+
+
+
+                <p class="goal-text">
+
+                    Terus tambahkan tempat yang sudah
+                    kamu kunjungi untuk mencapai
+                    target perjalananmu.
+
+                </p>
+
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="supabase-config.js"></script>
+
+<script src="dashboard.js"></script>
+
+
+
+
+</body>
+
+</html>

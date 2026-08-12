@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>Daftar Perjalanan - MyJourney</title>
+
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: Arial, Helvetica, sans-serif;
+            }
+
+            body{
+                background: #f4f7f9;
+                color: #1f2937;
+            }
+
+            /* SIDEBAR */
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+
+                width: 240px;
+                height: 100vh;
+
+                background: #111827;
+                color: white;
+                padding: 30px 20px;
+            }
+
+            .logo {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 50px;
+            }
+
+            .logo-icon{
+                width: 42px;
+                height: 42px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background: #10b981;
+                border-radius: 12px;
+                font-size: 20px;
+            }
+            .logo h2 {
+                font-size: 20px;
+            }
+            .menu {
+                list-style: none;
+            }
+
+            .menu li{
+                margin-bottom: 10px;
+            }
+
+            .menu a {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                padding: 13px 15px;
+                color: #ecb5e1;
+                text-decoration: none;
+                border-radius: 9px;
+                transition: 0.2s;
+
+            }
+
+            .menu a:hover{
+                background: #1f2937;
+                color: white;
+            }
+
+            .menu .active {
+                background: #10b981;
+                color: white;
+            }
+
+            .logout-box{
+                position: absolute;
+                bottom: 30px;
+                left: 20px;
+                right: 20px;
+            }
+
+            .logout-btn {
+                width: 100%;
+                padding: 12px;
+                border: none;
+                border-radius: 8px;
+                background: #ef4444;
+                color: white;
+                cursor: pointer;
+            }
+
+            /* MAIN */
+            
+            .main {
+                margin-left: 240px;
+                min-height: 100vh;
+                padding: 40px;
+            }
+
+            .top-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 30px;
+            }
+
+            .title h1 {
+                font-size: 30px;
+                margin-bottom: 8px;
+            }
+
+            .title p {
+                color: #6b2780;
+                font-size: 14px;
+            }
+
+            .add-btn {
+                padding: 13px 20px;
+                border: none;
+                border-radius: 9px;
+                background: #10b981;
+                color: white;
+                font-weight: bold;
+                cursor: pointer;
+            }
+
+            .add-btn:hover{
+                background: #059669;
+            }
+            /* PENCARIAN */
+            .toolbar {
+                background: white;
+                padding: 20px;
+                border-radius: 15px;
+                margin-bottom: 25px;
+                box-shadow: 0 5px 20px rgba(0,0,0,0.04);
+            }
+
+            .search-box {
+                width: 100%;
+                padding: 13px 15px;
+                border: 1px solid #d1d5db;
+                border-radius: 9px;
+                outline: none;
+            }
+
+            .search-box:focus {
+                border-color: #10b981;
+            }
+
+            /* GRID */
+            
+            .journey-grid {
+                display: grid;
+                grid-template-columns:
+                repeat(auto-fill, minmax(300px, 1fr));
+                gap: 32px;
+            }
+
+            /* CARD */
+
+            .journey-card {
+                background: white;
+                border-radius: 16px;
+                overflow: hidden;
+                box-shadow: 
+                0 5px 20px rgba(0,0,0,0.05);
+                transition: 0.2s;
+            }
+
+            .journey-card:hover{
+                transform: translateY(-4px);
+
+                box-shadow: 
+                 0 10px 25px rgba(0,0,0,0.08);
+            }
+
+        /* UNTUK FOTO */
+
+            .card-cover {
+                width: 100%;
+                height: 200px;
+
+                background:
+                  linear-gradient(
+                    135deg,
+                    #111827,
+                    #10b981
+                  );
+
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 48px;
+            }
+
+            .card-cover img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: 0.3s;
+            }
+
+            .journey-card:hover .card-cover img {
+                transform: scale(1.05);
+            }
+
+            .card-body{
+                padding: 22px;
+            }
+
+            .card-body h3 {
+                margin-bottom: 12px;
+                font-size: 20px;
+            }
+
+            .location {
+                color: #6b7280;
+                font-size: 13px;
+                margin-bottom: 8px;
+            }
+
+            .data {
+                color: #10b981;
+                font-size: 13px;
+                margin-bottom: 15px;
+            }
+
+            .notes{
+                color: #6b7290;
+                font-size: 13px;
+                line-height: 1.6;
+                min-height: 42px;
+
+            }
+
+            /* BUTTON CARD */
+            .card-actions {
+                display: flex;
+                gap: 8px;
+                margin-top: 20px;
+            }
+
+            .detail-btn,
+            .delete-btn{
+                flex: 1;
+                padding: 10px;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+            }
+
+            .detail-btn{
+                background: #ecfdf5;
+                color: #059669;
+                font-weight: bold;
+            }
+
+            .delete-btn{
+                background: #fee2e2;
+                color: #dc2626;
+                font-weight: bold;
+            }
+
+            /* EMPTY */
+
+            .empty{
+                grid-column: 1 / -1;
+                background: white;
+                text-align: center;
+                padding: 70px 20px;
+                border-radius: 16px;
+            }
+
+            .empty-icon {
+                font-size: 60px;
+                margin-bottom: 20px;
+            }
+
+            .empty h2{
+                margin-bottom: 10px;
+            }
+
+            .empty p {
+                color: #6b7280;
+                margin-bottom: 25px;
+            }
+
+            /* RESPONSIVE */
+            @media(max-width:800px){
+                
+                .sidebar{
+                    display: none;
+                }
+                .main {
+                    margin-left: 0;
+                    padding: 20px;
+                }
+                .top-header{
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 20px;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    ✈
+                </div>
+                <h2>
+                    MyJourney
+                </h2>
+            </div>
+
+            <ul class="menu">
+                <li>
+                    <a href="dashboard.html">
+                        🏠
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a 
+                        href="perjalanan.html"
+                        class="active">
+                    
+                        📍
+                        <span>Perjalanan</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="tambah.html">
+                        ➕
+                        <span>Tambah Perjalanan</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="logout-box">
+
+                <button
+                    class="logout-btn"
+                    onclick="logout()">
+
+                    Logout
+
+
+                </button>
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="top-header">
+                <div class="title">
+                    <h1>
+                        Perjalanan Saya 🧳
+                    </h1>
+                    <p>
+                        Semua tempat yang pernah saya kunjungi
+                        akan tersimpan disini.
+                    </p>
+                </div>
+
+                <button
+                    class="add-btn"
+                    onclick="window.location.href='tambah.html'">
+
+                    + Tambah Perjalanan
+
+                </button>
+            </div>
+
+            <div class="toolbar">
+                <input
+                    type="text"
+                    id="searchInput"
+                    class="search-box"
+                    placeholder="🔍 Cari nama tempat, kota, provinsi, atau negara...">
+            </div>
+
+            <div 
+                    class="journey-grid"
+                    id="journeyGrid">
+                </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="supabase-config.js"></script>
+
+<script src="perjalanan.js"></script>
+    </body>
+</html>
