@@ -2,6 +2,7 @@
 <html lang="id">
 
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -541,6 +542,35 @@
 
     </style>
 
+    <!-- ====================================== -->
+    <!-- SEMBUNYIKAN HALAMAN SEBELUM LOGIN DICEK -->
+    <!-- ====================================== -->
+
+    <style>
+        html {
+            visibility: hidden;
+        }
+    </style>
+
+
+    <!-- ====================================== -->
+    <!-- SUPABASE -->
+    <!-- ====================================== -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="supabase-config.js"></script>
+
+
+    <!-- ====================================== -->
+    <!-- PROTEKSI LOGIN -->
+    <!-- ====================================== -->
+
+    <script src="auth-guard.js"></script>
+
+</head>
+
+
 </head>
 
 
@@ -757,19 +787,7 @@
 </div>
 
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script src="supabase-config.js"></script>
-
 <script src="galeri.js"></script>
-
-
-
-    <!-- ====================================== -->
-    <!-- PROTEKSI LOGIN -->
-    <!-- ====================================== -->
-
-<script src="auth-guard.js"></script>
 
 </body>
 
