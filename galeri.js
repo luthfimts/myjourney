@@ -884,11 +884,11 @@ if (uploadFoto) {
 
 
             // ======================================
-            // BATASI 5 MB
+            // BATASI 50 MB
             // ======================================
 
             const maksimalUkuran =
-                5
+                50
                 *
                 1024
                 *
@@ -908,7 +908,7 @@ if (uploadFoto) {
 
                     +
 
-                    "Gunakan foto maksimal 5 MB."
+                    "Gunakan foto maksimal 50 MB."
 
                 );
 
