@@ -681,6 +681,29 @@
 </button>
 
 
+<!---TOMBOL SEMENTARA -->
+<input
+    type="file"
+    id="testGoogleFoto"
+    accept="image/*"
+>
+
+<button
+class="upload-btn"
+onclick="testUploadGoogleDrive()">
+
+🧪 Test Upload Drive
+</button>
+
+
+
+
+
+
+
+
+
+
 
 
     <!--TOMBOL UNTUK UPLOAD-->
@@ -823,6 +846,31 @@
         src="">
 
 </div>
+
+<script>
+
+    async function testUploadGoogleDrive() {
+        document.getElementById(
+            "testGoogleFoto"
+        );
+
+        const file =
+        input.file[0];
+
+        if (!file){
+            alert(
+                "Pilih foto terlebih dahulu."
+            );
+
+            return;
+        }
+
+        await uploadFileKeGoogleDrive(
+            file
+        );
+    }
+</script>
+
 
 <script src="galeri.js"></script>
 
