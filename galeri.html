@@ -563,6 +563,13 @@
 
 
     <!-- ====================================== -->
+    <!-- GOOGLE DRIVE -->
+    <!-- ====================================== -->
+    <script src="https://accounts.google.com/gsi/client"></script>
+    <script src="google-drive-config.js"></script>
+
+
+    <!-- ====================================== -->
     <!-- PROTEKSI LOGIN -->
     <!-- ====================================== -->
 
@@ -644,6 +651,18 @@
         </p>
 
     </div>
+
+<!--TOMBOL UPLOAD GOOGLE DRIVE-->
+<button 
+    class="upload-btn"
+    onclick="hubungkanGoogleDrive()">
+
+    ☁ Hubungkan Google Drive
+
+</button>
+
+
+
 
     <!--TOMBOL UNTUK UPLOAD-->
     <button 
@@ -786,8 +805,19 @@
 
 </div>
 
+<script>
+    window.addEventListener(
+        "load",
+        function(){
+
+            initGoogleDriveAuth();
+        }
+    );
+</script>
 
 <script src="galeri.js"></script>
+
+
 
 </body>
 
