@@ -315,7 +315,76 @@ async function uploadFileKeGoogleDrive(file) {
         return null;
     }
 
+// ======================================================
+// TEST UPLOAD GOOGLE DRIVE
+// ======================================================
 
+    async function testUploadGoogleDrive() {
+        
+        console.log("Tombol Test Upload Drive diklik");
+
+        const input =
+            document.getElementById("testGoogleFoto");
+
+        if (!input){
+            alert(
+                "Input testgoogleFoto tidak ditemukan."
+            );
+
+            return;
+        }
+
+        const file=
+            input.files[0];
+
+        if(!file){
+            alert(
+                "Pilih foto terlebih dahulu."
+            );
+            return;
+        }
+
+        console.og(
+            "File dipilih",
+            file.name,
+            file.size,
+            file.type
+
+        );
+
+        // Pastikan Google Drive sudah terhubung
+
+        if (!googleAccessToken){
+
+            alert(
+                "Google Drive belum terhubung.\n\n" +
+                "Klik Hubungkan Google Drive terlebih dahulu."
+            );
+
+            return;
+        }
+
+        // Pastikan folder sudah dutemukan
+        if (!googleFolderId){
+
+            alert(
+                "Folder MyJourney belum siap. \n\n" +
+                "klik Buat Folder MyJourney terlebih dahulu."
+            );
+
+            return;
+        }
+
+        const hasil =
+            await uploadFileKeGoogleDrive(file);
+
+        if (hasil){
+            console.log(
+                "TEST UPLAOD BERHASIL.",
+                hasil
+            );
+        }
+    }
     // ==========================================
     // CEK FOLDER
     // ==========================================
@@ -652,8 +721,7 @@ async function uploadFileKeGoogleDrive(file) {
 }
 
 
-window.uploadFileKeGoogleDrive =
-    uploadFileKeGoogleDrive;
+
 
 
 // ==========================================
@@ -790,3 +858,9 @@ window.hubungkanGoogleDrive =
 
 window.buatFolderMyJourney =
     buatFolderMyJourney;
+
+window.uploadFileKeGoogleDrive =
+    uploadFileKeGoogleDrive;
+
+window.testUploadGoogleDrive =
+    testUploadGoogleDrive;
