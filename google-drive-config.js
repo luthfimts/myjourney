@@ -33,6 +33,9 @@ let googleTokenExpiresAt = 0;
 
 let googleFolderId = null;
 
+let googleTokenResolve = null;
+
+let googleTokenReject = null;
 
 
 // ======================================================
@@ -162,6 +165,17 @@ function initGoogleDriveAuth() {
                     googleAccessToken =
                         response.access_token;
 
+                    if (googleTokenResolve){
+                        googleTokenResolve(
+                            googleAccessToken
+                        );
+
+                        googleTokenResolve =
+                            null;
+
+                        googleTokenReject =
+                            null;
+                    }
 
 
                     // Token biasanya mempunyai expires_in
@@ -652,6 +666,26 @@ async function buatFolderBaruMyJourney() {
 
         );
 
+    }
+
+
+    // ERROR CALLBACK
+
+    if (googleTokenReject){
+
+        googleTokenReject(
+            new Error(
+                response.error
+                ||
+                "Google OAuth gagal."
+            )
+        );
+
+        googleTokenResolve =
+            null;
+
+        googleTokenReject =
+            null;
     }
 
 
@@ -1409,7 +1443,7 @@ async function testUploadGoogleDrive() {
         file.type
     );
 
-
+}
 
     // ==========================================
     // GOOGLE HARUS TERHUBUNG
@@ -1483,9 +1517,63 @@ async function testUploadGoogleDrive() {
 
     }
 
-}
 
+    //========================================
+    // PASTIKAN GOOGLE DRIVE TERHUBUNG
+    //========================================
 
+    function pastikanGoogleDriveTerhubung(){
+
+        // Token masih aktif
+        if(
+            tokenGoogleMasihValid()
+        ) {
+            return Promise.resolve(
+            googleAccessToken
+            );
+            
+        }
+       
+
+    // Google OAuth belum siap
+
+        if(
+            !googleTokenClient
+        ){
+            initGoogleDriveAuth();
+        }
+
+        if (
+            !googleTokenClient
+        ){
+            return Promise.reject(
+                new Error(
+                    "Google OAuth belum siap."
+                )
+            );
+        }
+
+        return new Promise(
+            function(resolve, reject){
+
+                googleTokenResolve =
+                resolve;
+
+                googleTokenReject =
+                reject;
+
+                googleTokenClient 
+                    .requestAccessToken({
+
+                        prompt: ""
+                    });
+            }
+        );
+    }
+    
+    
+
+    
 
 // ======================================================
 // 14. EXPORT KE WINDOW
@@ -1514,3 +1602,6 @@ window.uploadFileKeGoogleDrive =
 
 window.testUploadGoogleDrive =
     testUploadGoogleDrive;
+
+window.pastikanGoogleDriveTerhubung =
+    pastikanGoogleDriveTerhubung;
