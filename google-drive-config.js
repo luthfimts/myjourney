@@ -166,15 +166,13 @@ function initGoogleDriveAuth() {
                         response.access_token;
 
                     if (googleTokenResolve){
+
                         googleTokenResolve(
                             googleAccessToken
                         );
 
-                        googleTokenResolve =
-                            null;
-
-                        googleTokenReject =
-                            null;
+                        googleTokenResolve = null;
+                        googleTokenReject = null;
                     }
 
 
@@ -1537,6 +1535,21 @@ async function testUploadGoogleDrive() {
 
     // Google OAuth belum siap
 
+    if (googleTokenReject){
+
+        googleTokenReject(
+            new Error(
+                response.error ||
+                "Google OAuth gagal."
+            )
+        );
+
+        googleTokenResolve = null;
+        googleTokenReject = null;
+    }
+
+
+
         if(
             !googleTokenClient
         ){
@@ -1571,7 +1584,56 @@ async function testUploadGoogleDrive() {
         );
     }
     
+
+// ====================================================
+// PASTKAN GOOGLE DRIVE TERHUBUNG
+// ====================================================
+
+function pastikanGoogleDriveTerhubung(){
     
+    // Token masih valid 
+    if (
+        tokenGoogleMasihValid()
+    ){
+        return Promise.resolve(
+            googleAccessToken
+        );
+    }
+
+// Pastikan OAuth siap
+if (!googleTokenClient){
+    initGoogleDriveAuth();
+}
+
+if (!googleTokenClient){
+
+    return Promise.reject(
+        new Error(
+            "Google OAuth belum siap."
+        )
+    );
+}
+
+// Minta token Google
+return new Promise(
+    function(resolve, reject){
+
+        googleTokenResolve =
+        resolve;
+
+        googleTokenReject =
+        reject;
+
+        googleTokenClient
+            .requestAccessToken({
+
+                prompt:
+                    "consent"
+            });
+    }
+);
+
+}
 
     
 
@@ -1598,7 +1660,7 @@ window.buatFolderMyJourney =
 
 window.pastikanFolderMyJourney =
     pastikanFolderMyJourney;
-    
+
 
 window.uploadFileKeGoogleDrive =
     uploadFileKeGoogleDrive;
