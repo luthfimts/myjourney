@@ -1368,7 +1368,8 @@ async function testUploadGoogleDrive() {
 
 
     console.log(
-        "Tombol Test Upload Drive diklik ✅"
+        "Tipe:",
+        file.type
     );
 
 
