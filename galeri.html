@@ -565,8 +565,17 @@
     <!-- ====================================== -->
     <!-- GOOGLE DRIVE -->
     <!-- ====================================== -->
-    <script src="https://accounts.google.com/gsi/client"></script>
     <script src="google-drive-config.js"></script>
+    <script 
+    src="https://accounts.google.com/gsi/client">
+    onload="initGoogleDriveAuth()"
+    async
+    defer>
+
+</script>
+
+
+    
 
 
     <!-- ====================================== -->
@@ -804,16 +813,6 @@
         src="">
 
 </div>
-
-<script>
-    window.addEventListener(
-        "load",
-        function(){
-
-            initGoogleDriveAuth();
-        }
-    );
-</script>
 
 <script src="galeri.js"></script>
 
