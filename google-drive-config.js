@@ -1354,6 +1354,78 @@ async function uploadFileKeGoogleDrive(
 
 }
 
+async function hubungkanGoogleDrivePermanen() {
+    try {
+        console.log("Memulai koneksi Google Drive permanen...");
+
+        // Ambil session MyJourney / Supabase
+        const {
+            data: { session },
+            error
+        } = await supabaseClient.auth.getSession();
+
+        if (error) {
+            console.error(error);
+            alert("Gagal membaca session MyJourney.");
+            return;
+        }
+
+        if (!session || !session.access_token) {
+            alert("Silakan login ke MyJourney terlebih dahulu.");
+            window.location.href = "index.html";
+            return;
+        }
+
+        // Hubungi Edge Function
+        const response = await fetch(
+            "https://lzcvejytwslglmelpdlm.supabase.co/functions/v1/google-oauth",
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${session.access_token}`,
+                    "Content-Type": "application/json"
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error("OAuth backend error:", data);
+
+            throw new Error(
+                data?.error ||
+                "Gagal memulai koneksi Google Drive."
+            );
+        }
+
+        if (!data.authorization_url) {
+            throw new Error(
+                "URL login Google tidak diterima dari server."
+            );
+        }
+
+        console.log("Mengarahkan ke Google...");
+
+        // Pindah ke halaman izin Google
+        window.location.href = data.authorization_url;
+
+    } catch (error) {
+        console.error(
+            "hubungkanGoogleDrivePermanen error:",
+            error
+        );
+
+        alert(
+            "Gagal menghubungkan Google Drive:\n\n" +
+            error.message
+        );
+    }
+}
+
+window.hubungkanGoogleDrivePermanen =
+    hubungkanGoogleDrivePermanen;
+
 
 
 // ======================================================
