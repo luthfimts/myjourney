@@ -295,307 +295,366 @@ async function buatFolderMyJourney() {
 }
 
 
-// ==========================================
-// UPLOAD FILE KE GOOGLE DRIVE
-// ==========================================
+// ======================================================
+// UPLOAD FILE KE GOOGLE DRIVE - RESUMABLE
+// ======================================================
 
-async function uploadFileKeGoogleDrive(file){
+async function uploadFileKeGoogleDrive(file) {
 
-//==========================================
-// CEK LOGIN GOOGLE
-//==========================================
+    // ==========================================
+    // CEK LOGIN GOOGLE
+    // ==========================================
 
-if(!googleAccessToken){
-
-    alert(
-        "Google Drive berlum terhubung. \n\n" +
-        "Klik Hubungkan Google Drive terlebih dahulu."
-    );
-
-    return null;
-}
-
-// ===========================================
-// CEK FOLDER
-// ===========================================
-
-if (!googleFolderId){
-
-    alert(
-        "Folder MyJourney belum siap.\n\n" +
-        "Klik Buat Folder MyJourney terlebih dahulu."
-    );
-
-    return null;
-}
-
-
-// =============================================
-// CEK FILE
-// =============================================
-
-if (!file){
-
-    alert(
-        "Pili foto terlebh dahulu."
-    );
-
-    return null;
-}
-
-try{
-
-// =============================================
-// NAMA FILE
-// =============================================
-
-  const namaFile =
-    Data.now()
-    +
-    "_"
-    +
-    file.name;
-
-
-//===============================================
-// METADATA
-//===============================================
-
-    const metadata ={
-        name: 
-        namaFile,
-        parent: [
-            googleFolderId
-        ]
-    };
-
-    console.log(
-        "Memulai Upload:",
-        namaFile
-    );
-
-//=================================================
-// LANGKAH 1
-// BUAT RESUMABLE UPLOAD SESSIOM
-//=================================================
-
-const sessionResponse =
-    await fetch(
-         "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,mimeType,size",
-
-         {
-            method:
-            "POST",
-
-            header:{
-
-                "Authorization":
-                    'Bearer ${googleAccessToken}',
-
-                "Content-Type":
-                    "application/json; charset=UTF-8",
-
-                "X-Upload-Content-Type":
-                    file.type
-                    ||
-                    "application/octet-stream",
-                "   x-Upload-Content-Length":
-                        file.size.toString()
-            },
-
-            body:
-                JSON.stringify(
-                    metadata
-                )
-         }
-        
-    );
-
-// ==============================================
-// SESSION GAGAL
-// ==============================================
-
-if(!sessionResponse.ok){
-
-    let errorData = {};
-
-    try{
-        errorData =
-            await sessionResponse.json();
-    }
-
-    catch(error){
-
-        console.error(error);
-    }
-
-    console.error(
-        "Gagal membuat upload session:",
-        errorData
-    );
-
-    alert(
-        "Gagal memulai upload.\n\n"
-
-        +
-      (
-        errorData
-            ?.error
-            ?.message
-
-        ||
-        "Error Goole Drive."
-      )  
-    );
-
-    return null;
-}
-
-// ====================================================
-// AMBIL URL SESSION
-// =====================================================
-
-const uploadUrl =
-    sessionResponse
-        .headers
-        .get(
-            "Location"
-        );
-
-    if (!uploadUrl){
-        console.error(
-            "Upload URL tidak ditemukan."
-        );
+    if (!googleAccessToken) {
 
         alert(
-            "Google Drive tidak memberikan URL upload."
+            "Google Drive belum terhubung.\n\n" +
+            "Klik Hubungkan Google Drive terlebih dahulu."
         );
 
         return null;
     }
 
-    console.log(
-        "Upload session berhasil dibuat."
-    );
 
-    // =====================================================
-    // LAHKAH 2
-    // =====================================================
+    // ==========================================
+    // CEK FOLDER
+    // ==========================================
 
-    const uploadResponse =
-        await fetch(
-            uploadUrl,
-            {
+    if (!googleFolderId) {
 
-                method:
-                "PUT",
-                
-                headers: {
-
-                    "Authorization":
-                    'Bearer ${googleAccessToken}',
-
-                    "Content-Type":
-                    file.type
-                   ||
-                   "application/octet-stream" 
-                },
-
-                body:
-                file
-            }
+        alert(
+            "Folder MyJourney belum siap.\n\n" +
+            "Klik Buat Folder MyJourney terlebih dahulu."
         );
 
-        //=========================================
-        // AMBIL HASIL
-        //=========================================
+        return null;
+    }
 
-        let data = {};
 
-        try{
-            data =
-             await uploadResponse.json();
-        }
+    // ==========================================
+    // CEK FILE
+    // ==========================================
 
-        catch(error){
-            console.error(
-                "Response bukan JSON:",
-                error
+    if (!file) {
+
+        alert(
+            "Pilih foto terlebih dahulu."
+        );
+
+        return null;
+    }
+
+
+    try {
+
+        // ======================================
+        // NAMA FILE
+        // ======================================
+
+        const namaFile =
+            Date.now()
+            +
+            "-"
+            +
+            file.name;
+
+
+        // ======================================
+        // METADATA
+        // ======================================
+
+        const metadata = {
+
+            name:
+                namaFile,
+
+            parents: [
+                googleFolderId
+            ]
+
+        };
+
+
+        console.log(
+            "Memulai upload:",
+            namaFile
+        );
+
+
+        // ======================================
+        // LANGKAH 1
+        // BUAT RESUMABLE UPLOAD SESSION
+        // ======================================
+
+        const sessionResponse =
+            await fetch(
+
+                "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,mimeType,size",
+
+                {
+
+                    method:
+                        "POST",
+
+                    headers: {
+
+                        "Authorization":
+                            `Bearer ${googleAccessToken}`,
+
+                        "Content-Type":
+                            "application/json; charset=UTF-8",
+
+                        "X-Upload-Content-Type":
+                            file.type
+                            ||
+                            "application/octet-stream",
+
+                        "X-Upload-Content-Length":
+                            file.size.toString()
+
+                    },
+
+                    body:
+                        JSON.stringify(
+                            metadata
+                        )
+
+                }
+
             );
-        }
 
-        //===========================================
-        // UPLOAD GAGAL
-        //===========================================
 
-        if (!uploadResponse.ok){
+        // ======================================
+        // SESSION GAGAL
+        // ======================================
+
+        if (!sessionResponse.ok) {
+
+            let errorData = {};
+
+            try {
+
+                errorData =
+                    await sessionResponse.json();
+
+            }
+
+            catch(error) {
+
+                console.error(error);
+
+            }
+
+
             console.error(
-                "Upload gagal:",
-                data
+                "Gagal membuat upload session:",
+                errorData
             );
+
 
             alert(
-                "Upload foto gagal.\n\n"
+
+                "Gagal memulai upload.\n\n"
 
                 +
-            (
-                data
-                ?.error
-                ?.message
 
-                ||
-            "Error tidak diketahui."
-            )
+                (
+                    errorData
+                        ?.error
+                        ?.message
+                    ||
+                    "Error Google Drive."
+                )
+
             );
+
 
             return null;
         }
 
 
-        // ========================================
+        // ======================================
+        // AMBIL URL SESSION
+        // ======================================
+
+        const uploadUrl =
+            sessionResponse
+                .headers
+                .get(
+                    "Location"
+                );
+
+
+        if (!uploadUrl) {
+
+            console.error(
+                "Upload URL tidak ditemukan."
+            );
+
+
+            alert(
+                "Google Drive tidak memberikan URL upload."
+            );
+
+
+            return null;
+        }
+
+
+        console.log(
+            "Upload session berhasil dibuat."
+        );
+
+
+        // ======================================
+        // LANGKAH 2
+        // KIRIM FILE
+        // ======================================
+
+        const uploadResponse =
+            await fetch(
+
+                uploadUrl,
+
+                {
+
+                    method:
+                        "PUT",
+
+                    headers: {
+
+                        "Authorization":
+                            `Bearer ${googleAccessToken}`,
+
+                        "Content-Type":
+                            file.type
+                            ||
+                            "application/octet-stream"
+
+                    },
+
+                    body:
+                        file
+
+                }
+
+            );
+
+
+        // ======================================
+        // AMBIL HASIL
+        // ======================================
+
+        let data = {};
+
+
+        try {
+
+            data =
+                await uploadResponse.json();
+
+        }
+
+        catch(error) {
+
+            console.error(
+                "Response bukan JSON:",
+                error
+            );
+
+        }
+
+
+        // ======================================
+        // UPLOAD GAGAL
+        // ======================================
+
+        if (!uploadResponse.ok) {
+
+            console.error(
+                "Upload gagal:",
+                data
+            );
+
+
+            alert(
+
+                "Upload foto gagal.\n\n"
+
+                +
+
+                (
+                    data
+                        ?.error
+                        ?.message
+                    ||
+                    "Error tidak diketahui."
+                )
+
+            );
+
+
+            return null;
+        }
+
+
+        // ======================================
         // BERHASIL
-        // ========================================
+        // ======================================
 
         console.log(
             "File berhasil diupload:",
             data
         );
 
+
         alert(
-             "Foto berhasil diupload ke Google Drive! 📸✅\n\n"
 
-             +
+            "Foto berhasil diupload ke Google Drive! 📸✅\n\n"
 
-             "Nama:"
+            +
 
-             +
+            "Nama: "
 
-             data.name
+            +
+
+            data.name
+
         );
+
 
         return data;
 
-}
+    }
 
-    catch(error){
+    catch(error) {
+
         console.error(
             "Upload Google Drive Error:",
             error
         );
 
+
         alert(
+
             "Terjadi kesalahan saat upload.\n\n"
 
             +
 
             error.message
+
         );
+
 
         return null;
     }
+
 }
-  window.uploadFileKeGoogleDrive =
+
+
+window.uploadFileKeGoogleDrive =
     uploadFileKeGoogleDrive;
+
 
 // ==========================================
 // INISIALISASI GOOGLE DRIVE
