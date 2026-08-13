@@ -38,23 +38,16 @@ let googleTokenResolve = null;
 let googleTokenReject = null;
 
 
+
 // ======================================================
 // 3. INISIALISASI GOOGLE OAUTH
 // ======================================================
 
 function initGoogleDriveAuth() {
 
-    console.log(
-        "Menyiapkan Google Drive..."
-    );
-
-
-    // Pastikan Google Identity Services sudah dimuat
     if (
-        typeof google === "undefined"
-        ||
-        !google.accounts
-        ||
+        typeof google === "undefined" ||
+        !google.accounts ||
         !google.accounts.oauth2
     ) {
 
@@ -81,12 +74,24 @@ function initGoogleDriveAuth() {
 
 
                     // ==================================
-                    // JIKA LOGIN / IZIN GAGAL
+                    // JIKA OAUTH ERROR
                     // ==================================
 
                     if (
                         response.error
                     ) {
+
+                        const error =
+                            new Error(
+
+                                response.error_description
+                                ||
+                                response.error
+                                ||
+                                "Google OAuth gagal."
+
+                            );
+
 
                         console.error(
                             "Google OAuth Error:",
@@ -94,10 +99,9 @@ function initGoogleDriveAuth() {
                         );
 
 
-                        alert(
-                            "Gagal menghubungkan Google Drive.\n\n"
-                            +
-                            response.error
+                        selesaikanPermintaanToken(
+                            null,
+                            error
                         );
 
 
@@ -114,13 +118,22 @@ function initGoogleDriveAuth() {
                         !response.access_token
                     ) {
 
+                        const error =
+                            new Error(
+
+                                "Google tidak memberikan access token."
+
+                            );
+
+
                         console.error(
-                            "Access token tidak ditemukan."
+                            error
                         );
 
 
-                        alert(
-                            "Google tidak memberikan Access Token."
+                        selesaikanPermintaanToken(
+                            null,
+                            error
                         );
 
 
@@ -130,7 +143,7 @@ function initGoogleDriveAuth() {
 
 
                     // ==================================
-                    // CEK SCOPE
+                    // CEK SCOPE DRIVE.FILE
                     // ==================================
 
                     const scopeDiberikan =
@@ -148,8 +161,22 @@ function initGoogleDriveAuth() {
                         !scopeDiberikan
                     ) {
 
-                        alert(
-                            "Izin Google Drive belum diberikan."
+                        const error =
+                            new Error(
+
+                                "Izin Google Drive belum diberikan."
+
+                            );
+
+
+                        console.error(
+                            error
+                        );
+
+
+                        selesaikanPermintaanToken(
+                            null,
+                            error
                         );
 
 
@@ -159,24 +186,13 @@ function initGoogleDriveAuth() {
 
 
                     // ==================================
-                    // SIMPAN ACCESS TOKEN
+                    // SIMPAN TOKEN
                     // ==================================
 
                     googleAccessToken =
                         response.access_token;
 
-                    if (googleTokenResolve){
 
-                        googleTokenResolve(
-                            googleAccessToken
-                        );
-
-                        googleTokenResolve = null;
-                        googleTokenReject = null;
-                    }
-
-
-                    // Token biasanya mempunyai expires_in
                     const expiresIn =
                         Number(
                             response.expires_in
@@ -185,8 +201,6 @@ function initGoogleDriveAuth() {
                         3600;
 
 
-
-                    // Kurangi 1 menit sebagai pengaman
                     googleTokenExpiresAt =
 
                         Date.now()
@@ -204,20 +218,17 @@ function initGoogleDriveAuth() {
                         60000;
 
 
-
                     console.log(
                         "Google Drive OAuth berhasil ✅"
                     );
 
 
-                    console.log(
-                        "Access Token tersedia:",
-                        !!googleAccessToken
-                    );
+                    selesaikanPermintaanToken(
 
+                        googleAccessToken,
 
-                    alert(
-                        "Google Drive berhasil terhubung! ✅"
+                        null
+
                     );
 
                 }
@@ -234,12 +245,57 @@ function initGoogleDriveAuth() {
 
 
 // ======================================================
-// 4. CEK TOKEN
+// 4. SELESAIKAN REQUEST TOKEN
+// ======================================================
+
+function selesaikanPermintaanToken(
+    token,
+    error
+) {
+
+    if (
+        error
+        &&
+        googleTokenReject
+    ) {
+
+        googleTokenReject(
+            error
+        );
+
+    }
+
+    else if (
+        token
+        &&
+        googleTokenResolve
+    ) {
+
+        googleTokenResolve(
+            token
+        );
+
+    }
+
+
+    googleTokenResolve =
+        null;
+
+
+    googleTokenReject =
+        null;
+
+}
+
+
+
+// ======================================================
+// 5. CEK TOKEN
 // ======================================================
 
 function tokenGoogleMasihValid() {
 
-    return (
+    return Boolean(
 
         googleAccessToken
 
@@ -256,7 +312,7 @@ function tokenGoogleMasihValid() {
 
 
 // ======================================================
-// 5. RESET TOKEN
+// 6. RESET TOKEN
 // ======================================================
 
 function resetTokenGoogle() {
@@ -268,42 +324,17 @@ function resetTokenGoogle() {
     googleTokenExpiresAt =
         0;
 
-
-    console.log(
-        "Access Token Google direset."
-    );
-
 }
 
 
 
 // ======================================================
-// 6. HUBUNGKAN GOOGLE DRIVE
+// 7. MINTA ACCESS TOKEN
 // ======================================================
 
-function hubungkanGoogleDrive() {
-
-
-    // ==========================================
-    // JIKA SUDAH TERHUBUNG
-    // ==========================================
-
-    if (
-        tokenGoogleMasihValid()
-    ) {
-
-        alert(
-            "Google Drive sudah terhubung! ✅"
-        );
-
-        return;
-    }
-
-
-
-    // ==========================================
-    // JIKA TOKEN CLIENT BELUM SIAP
-    // ==========================================
+function mintaAccessTokenGoogle(
+    promptMode = ""
+) {
 
     if (
         !googleTokenClient
@@ -314,230 +345,94 @@ function hubungkanGoogleDrive() {
     }
 
 
-
     if (
         !googleTokenClient
     ) {
 
-        alert(
-            "Google OAuth belum siap.\n\n"
-            +
-            "Refresh halaman lalu coba lagi."
+        return Promise.reject(
+
+            new Error(
+
+                "Google OAuth belum siap. "
+                +
+                "Refresh halaman lalu coba lagi."
+
+            )
+
         );
 
-        return;
     }
 
 
+    return new Promise(
 
-    // ==========================================
-    // MINTA ACCESS TOKEN
-    // ==========================================
+        function(resolve, reject) {
 
-    googleTokenClient
-        .requestAccessToken({
 
-            prompt:
-                "consent"
+            googleTokenResolve =
+                resolve;
 
-        });
+
+            googleTokenReject =
+                reject;
+
+
+            googleTokenClient
+                .requestAccessToken({
+
+                    prompt:
+                        promptMode
+
+                });
+
+        }
+
+    );
 
 }
 
 
 
 // ======================================================
-// 7. CARI FOLDER MYJOURNEY
+// 8. PASTIKAN GOOGLE DRIVE TERHUBUNG
 // ======================================================
 
-async function cariFolderMyJourney() {
-
+async function pastikanGoogleDriveTerhubung() {
 
     if (
-        !tokenGoogleMasihValid()
+        tokenGoogleMasihValid()
     ) {
 
-        return null;
+        return googleAccessToken;
+
     }
 
 
+    return await mintaAccessTokenGoogle(
+        ""
+    );
+
+}
+
+
+
+// ======================================================
+// 9. HUBUNGKAN GOOGLE DRIVE MANUAL
+// ======================================================
+
+async function hubungkanGoogleDrive() {
 
     try {
 
 
-        const query =
-
-            "name = '"
-            +
-            GOOGLE_FOLDER_NAME
-            +
-            "' "
-            +
-            "and mimeType = "
-            +
-            "'application/vnd.google-apps.folder' "
-            +
-            "and trashed = false";
-
-
-
-        const url =
-            new URL(
-
-                "https://www.googleapis.com/drive/v3/files"
-
-            );
-
-
-
-        url.searchParams.set(
-            "q",
-            query
+        await mintaAccessTokenGoogle(
+            "consent"
         );
 
 
-        url.searchParams.set(
-            "spaces",
-            "drive"
+        alert(
+            "Google Drive berhasil terhubung! ✅"
         );
-
-
-        url.searchParams.set(
-            "fields",
-            "files(id,name)"
-        );
-
-
-        url.searchParams.set(
-            "pageSize",
-            "10"
-        );
-
-
-
-        const response =
-            await fetch(
-
-                url.toString(),
-
-                {
-
-                    method:
-                        "GET",
-
-                    headers: {
-
-                        "Authorization":
-                            `Bearer ${googleAccessToken}`
-
-                    }
-
-                }
-
-            );
-
-
-
-        const data =
-            await response.json();
-
-
-
-        // ======================================
-        // TOKEN INVALID
-        // ======================================
-
-        if (
-            response.status === 401
-        ) {
-
-            resetTokenGoogle();
-
-
-            throw new Error(
-
-                "Access Token Google sudah tidak valid. "
-                +
-                "Hubungkan Google Drive kembali."
-
-            );
-
-        }
-
-
-
-        // ======================================
-        // ERROR LAIN
-        // ======================================
-
-        if (
-            !response.ok
-        ) {
-
-            throw new Error(
-
-                data
-                    ?.error
-                    ?.message
-
-                ||
-
-                "Gagal mencari folder MyJourney."
-
-            );
-
-        }
-
-
-
-        // ======================================
-        // FOLDER DITEMUKAN
-        // ======================================
-
-        if (
-
-            Array.isArray(
-                data.files
-            )
-
-            &&
-
-            data.files.length > 0
-
-        ) {
-
-
-            googleFolderId =
-                data.files[0].id;
-
-
-            console.log(
-                "Folder MyJourney ditemukan ✅"
-            );
-
-
-            console.log(
-                "Folder ID tersedia:",
-                !!googleFolderId
-            );
-
-
-            return googleFolderId;
-
-        }
-
-
-
-        // ======================================
-        // BELUM ADA
-        // ======================================
-
-        console.log(
-            "Folder MyJourney belum ditemukan."
-        );
-
-
-        return null;
 
 
     }
@@ -546,12 +441,19 @@ async function cariFolderMyJourney() {
 
 
         console.error(
-            "Cari Folder Error:",
             error
         );
 
 
-        throw error;
+        alert(
+
+            "Gagal menghubungkan Google Drive.\n\n"
+
+            +
+
+            error.message
+
+        );
 
     }
 
@@ -560,22 +462,191 @@ async function cariFolderMyJourney() {
 
 
 // ======================================================
-// 8. BUAT FOLDER MYJOURNEY
+// 10. CARI FOLDER MYJOURNEY
+// ======================================================
+
+async function cariFolderMyJourney() {
+
+
+    await pastikanGoogleDriveTerhubung();
+
+
+    const query =
+
+        "name = '"
+
+        +
+
+        GOOGLE_FOLDER_NAME
+
+        +
+
+        "' and mimeType = "
+
+        +
+
+        "'application/vnd.google-apps.folder'"
+
+        +
+
+        " and trashed = false";
+
+
+
+    const url =
+        new URL(
+
+            "https://www.googleapis.com/drive/v3/files"
+
+        );
+
+
+
+    url.searchParams.set(
+        "q",
+        query
+    );
+
+
+    url.searchParams.set(
+        "spaces",
+        "drive"
+    );
+
+
+    url.searchParams.set(
+        "fields",
+        "files(id,name)"
+    );
+
+
+    url.searchParams.set(
+        "pageSize",
+        "10"
+    );
+
+
+
+    const response =
+        await fetch(
+
+            url.toString(),
+
+            {
+
+                method:
+                    "GET",
+
+                headers: {
+
+                    Authorization:
+                        `Bearer ${googleAccessToken}`
+
+                }
+
+            }
+
+        );
+
+
+
+    const data =
+        await response.json();
+
+
+
+    // ==========================================
+    // TOKEN INVALID
+    // ==========================================
+
+    if (
+        response.status === 401
+    ) {
+
+        resetTokenGoogle();
+
+
+        throw new Error(
+
+            "Access Token Google sudah tidak valid. "
+            +
+            "Silakan coba lagi."
+
+        );
+
+    }
+
+
+
+    // ==========================================
+    // ERROR
+    // ==========================================
+
+    if (
+        !response.ok
+    ) {
+
+        throw new Error(
+
+            data
+                ?.error
+                ?.message
+
+            ||
+
+            "Gagal mencari folder MyJourney."
+
+        );
+
+    }
+
+
+
+    // ==========================================
+    // FOLDER DITEMUKAN
+    // ==========================================
+
+    if (
+
+        Array.isArray(
+            data.files
+        )
+
+        &&
+
+        data.files.length > 0
+
+    ) {
+
+        googleFolderId =
+            data.files[0].id;
+
+
+        console.log(
+            "Folder MyJourney ditemukan ✅"
+        );
+
+
+        return googleFolderId;
+
+    }
+
+
+
+    return null;
+
+}
+
+
+
+// ======================================================
+// 11. BUAT FOLDER BARU MYJOURNEY
 // ======================================================
 
 async function buatFolderBaruMyJourney() {
 
 
-    if (
-        !tokenGoogleMasihValid()
-    ) {
-
-        throw new Error(
-            "Google Drive belum terhubung."
-        );
-
-    }
-
+    await pastikanGoogleDriveTerhubung();
 
 
     const response =
@@ -590,7 +661,7 @@ async function buatFolderBaruMyJourney() {
 
                 headers: {
 
-                    "Authorization":
+                    Authorization:
                         `Bearer ${googleAccessToken}`,
 
                     "Content-Type":
@@ -621,10 +692,6 @@ async function buatFolderBaruMyJourney() {
 
 
 
-    // ==========================================
-    // TOKEN INVALID
-    // ==========================================
-
     if (
         response.status === 401
     ) {
@@ -636,17 +703,13 @@ async function buatFolderBaruMyJourney() {
 
             "Access Token Google sudah tidak valid. "
             +
-            "Hubungkan Google Drive kembali."
+            "Silakan coba lagi."
 
         );
 
     }
 
 
-
-    // ==========================================
-    // ERROR
-    // ==========================================
 
     if (
         !response.ok
@@ -667,40 +730,13 @@ async function buatFolderBaruMyJourney() {
     }
 
 
-    // ERROR CALLBACK
-
-    if (googleTokenReject){
-
-        googleTokenReject(
-            new Error(
-                response.error
-                ||
-                "Google OAuth gagal."
-            )
-        );
-
-        googleTokenResolve =
-            null;
-
-        googleTokenReject =
-            null;
-    }
-
-
 
     googleFolderId =
         data.id;
 
 
-
     console.log(
         "Folder MyJourney berhasil dibuat ✅"
-    );
-
-
-    console.log(
-        "Folder ID tersedia:",
-        !!googleFolderId
     );
 
 
@@ -711,50 +747,18 @@ async function buatFolderBaruMyJourney() {
 
 
 // ======================================================
-// 9. PASTIKAN FOLDER MYJOURNEY ADA
+// 12. PASTIKAN FOLDER MYJOURNEY ADA
 // ======================================================
 
 async function pastikanFolderMyJourney(
-    tampilkanPesan = true
+    tampilkanPesan = false
 ) {
-
-
-    // ==========================================
-    // TOKEN HARUS VALID
-    // ==========================================
-
-    if (
-        !tokenGoogleMasihValid()
-    ) {
-
-        if (
-            tampilkanPesan
-        ) {
-
-            alert(
-
-                "Google Drive belum terhubung.\n\n"
-
-                +
-
-                "Klik Hubungkan Google Drive terlebih dahulu."
-
-            );
-
-        }
-
-
-        return null;
-
-    }
-
-
 
     try {
 
 
         // ======================================
-        // JIKA SUDAH ADA FOLDER ID DI MEMORY
+        // ID SUDAH ADA DI MEMORY
         // ======================================
 
         if (
@@ -788,10 +792,6 @@ async function pastikanFolderMyJourney(
 
 
 
-        // ======================================
-        // FOLDER SUDAH ADA
-        // ======================================
-
         if (
             folderDitemukan
         ) {
@@ -819,7 +819,7 @@ async function pastikanFolderMyJourney(
 
 
         // ======================================
-        // BELUM ADA → BUAT FOLDER
+        // BUAT FOLDER JIKA BELUM ADA
         // ======================================
 
         const folderBaru =
@@ -879,7 +879,7 @@ async function pastikanFolderMyJourney(
 
 
 // ======================================================
-// 10. TOMBOL BUAT / CARI FOLDER
+// 13. TOMBOL BUAT / CARI FOLDER
 // ======================================================
 
 async function buatFolderMyJourney() {
@@ -893,13 +893,12 @@ async function buatFolderMyJourney() {
 
 
 // ======================================================
-// 11. BUAT NAMA FILE YANG AMAN
+// 14. NAMA FILE AMAN
 // ======================================================
 
 function buatNamaFileDrive(
     file
 ) {
-
 
     let namaAsli =
         file.name
@@ -907,8 +906,6 @@ function buatNamaFileDrive(
         "foto.jpg";
 
 
-
-    // Buang karakter yang berpotensi aneh
     namaAsli =
         namaAsli.replace(
 
@@ -917,7 +914,6 @@ function buatNamaFileDrive(
             "_"
 
         );
-
 
 
     return (
@@ -939,8 +935,8 @@ function buatNamaFileDrive(
 
 
 // ======================================================
-// 12. UPLOAD FILE KE GOOGLE DRIVE
-//     RESUMABLE UPLOAD
+// 15. UPLOAD FILE KE GOOGLE DRIVE
+// RESUMABLE UPLOAD
 // ======================================================
 
 async function uploadFileKeGoogleDrive(
@@ -948,335 +944,192 @@ async function uploadFileKeGoogleDrive(
 ) {
 
 
-    // ==========================================
-    // CEK TOKEN
-    // ==========================================
-
-    if (
-        !tokenGoogleMasihValid()
-    ) {
-
-        alert(
-
-            "Google Drive belum terhubung "
-            +
-            "atau session Google sudah habis.\n\n"
-
-            +
-            "Klik Hubungkan Google Drive kembali."
-
-        );
-
-
-        return null;
-
-    }
-
-
-
-    // ==========================================
-    // CEK FILE
-    // ==========================================
-
     if (
         !file
     ) {
 
-        alert(
-            "Pilih file terlebih dahulu."
+        throw new Error(
+            "File belum dipilih."
         );
-
-
-        return null;
 
     }
 
 
 
-    try {
+    // ==========================================
+    // PASTIKAN GOOGLE TERHUBUNG
+    // ==========================================
 
-
-        // ======================================
-        // PASTIKAN FOLDER ADA
-        // ======================================
-
-        const folderId =
-            await pastikanFolderMyJourney(
-                false
-            );
+    await pastikanGoogleDriveTerhubung();
 
 
 
-        if (
-            !folderId
-        ) {
+    // ==========================================
+    // PASTIKAN FOLDER ADA
+    // ==========================================
 
-            throw new Error(
-
-                "Folder MyJourney tidak dapat disiapkan."
-
-            );
-
-        }
-
-
-
-        // ======================================
-        // DATA FILE
-        // ======================================
-
-        const namaFile =
-            buatNamaFileDrive(
-                file
-            );
-
-
-        const mimeType =
-            file.type
-            ||
-            "application/octet-stream";
-
-
-
-        console.log(
-            "Memulai upload:",
-            namaFile
-        );
-
-
-        console.log(
-            "Ukuran file:",
-            file.size,
-            "bytes"
+    const folderId =
+        await pastikanFolderMyJourney(
+            false
         );
 
 
 
-        // ======================================
-        // METADATA FILE
-        // ======================================
+    if (
+        !folderId
+    ) {
 
-        const metadata = {
+        throw new Error(
 
-            name:
-                namaFile,
+            "Folder MyJourney tidak dapat disiapkan."
 
-            mimeType:
-                mimeType,
+        );
 
-            parents: [
-                folderId
-            ]
-
-        };
+    }
 
 
 
-        // ======================================
-        // LANGKAH A
-        // BUAT RESUMABLE SESSION
-        // ======================================
+    // ==========================================
+    // DATA FILE
+    // ==========================================
 
-        const sessionResponse =
-            await fetch(
-
-                "https://www.googleapis.com/upload/drive/v3/files"
-                +
-                "?uploadType=resumable"
-                +
-                "&fields=id,name,mimeType,size,webViewLink",
-
-                {
-
-                    method:
-                        "POST",
-
-                    headers: {
-
-                        "Authorization":
-                            `Bearer ${googleAccessToken}`,
-
-                        "Content-Type":
-                            "application/json; charset=UTF-8",
-
-                        "X-Upload-Content-Type":
-                            mimeType,
-
-                        "X-Upload-Content-Length":
-                            String(
-                                file.size
-                            )
-
-                    },
+    const namaFile =
+        buatNamaFileDrive(
+            file
+        );
 
 
-                    body:
-                        JSON.stringify(
-                            metadata
+    const mimeType =
+
+        file.type
+
+        ||
+
+        "application/octet-stream";
+
+
+
+    const metadata = {
+
+        name:
+            namaFile,
+
+        mimeType:
+            mimeType,
+
+        parents: [
+            folderId
+        ]
+
+    };
+
+
+
+    console.log(
+        "Memulai upload:",
+        namaFile
+    );
+
+
+
+    // ==========================================
+    // BUAT RESUMABLE SESSION
+    // ==========================================
+
+    const sessionResponse =
+        await fetch(
+
+            "https://www.googleapis.com/upload/drive/v3/files"
+
+            +
+
+            "?uploadType=resumable"
+
+            +
+
+            "&fields=id,name,mimeType,size,webViewLink",
+
+            {
+
+                method:
+                    "POST",
+
+                headers: {
+
+                    Authorization:
+                        `Bearer ${googleAccessToken}`,
+
+                    "Content-Type":
+                        "application/json; charset=UTF-8",
+
+                    "X-Upload-Content-Type":
+                        mimeType,
+
+                    "X-Upload-Content-Length":
+                        String(
+                            file.size
                         )
 
-                }
-
-            );
+                },
 
 
-
-        // ======================================
-        // TOKEN INVALID
-        // ======================================
-
-        if (
-            sessionResponse.status === 401
-        ) {
-
-            resetTokenGoogle();
-
-
-            throw new Error(
-
-                "Access Token Google sudah habis atau tidak valid.\n"
-                +
-                "Hubungkan Google Drive kembali."
-
-            );
-
-        }
-
-
-
-        // ======================================
-        // SESSION GAGAL
-        // ======================================
-
-        if (
-            !sessionResponse.ok
-        ) {
-
-
-            let errorData = null;
-
-
-            try {
-
-                errorData =
-                    await sessionResponse.json();
+                body:
+                    JSON.stringify(
+                        metadata
+                    )
 
             }
 
-            catch(error) {
-
-                console.error(
-                    error
-                );
-
-            }
-
-
-
-            throw new Error(
-
-                errorData
-                    ?.error
-                    ?.message
-
-                ||
-
-                (
-                    "Gagal memulai upload. HTTP "
-                    +
-                    sessionResponse.status
-                )
-
-            );
-
-        }
-
-
-
-        // ======================================
-        // AMBIL RESUMABLE SESSION URL
-        // ======================================
-
-        const uploadUrl =
-            sessionResponse
-                .headers
-                .get(
-                    "Location"
-                );
-
-
-
-        if (
-            !uploadUrl
-        ) {
-
-            throw new Error(
-
-                "Google Drive tidak memberikan "
-                +
-                "Resumable Upload URL."
-
-            );
-
-        }
-
-
-
-        console.log(
-            "Resumable session berhasil dibuat ✅"
         );
 
 
 
-        // ======================================
-        // LANGKAH B
-        // UPLOAD ISI FILE
-        // ======================================
+    // ==========================================
+    // TOKEN HABIS
+    // ==========================================
 
-        const uploadResponse =
-            await fetch(
+    if (
+        sessionResponse.status === 401
+    ) {
 
-                uploadUrl,
+        resetTokenGoogle();
 
-                {
 
-                    method:
-                        "PUT",
+        throw new Error(
 
-                    headers: {
+            "Session Google sudah habis. "
+            +
+            "Silakan coba Simpan Foto lagi."
 
-                        "Content-Type":
-                            mimeType
+        );
 
-                    },
-
-                    body:
-                        file
-
-                }
-
-            );
+    }
 
 
 
-        // ======================================
-        // HASIL UPLOAD
-        // ======================================
+    // ==========================================
+    // SESSION ERROR
+    // ==========================================
 
-        let data = null;
+    if (
+        !sessionResponse.ok
+    ) {
+
+
+        let errorData =
+            null;
 
 
         try {
 
-            data =
-                await uploadResponse.json();
+            errorData =
+                await sessionResponse.json();
 
         }
 
         catch(error) {
 
             console.error(
-                "Response upload bukan JSON:",
                 error
             );
 
@@ -1284,359 +1137,149 @@ async function uploadFileKeGoogleDrive(
 
 
 
-        // ======================================
-        // UPLOAD GAGAL
-        // ======================================
+        throw new Error(
 
-        if (
-            !uploadResponse.ok
-        ) {
+            errorData
+                ?.error
+                ?.message
 
-            throw new Error(
+            ||
 
-                data
-                    ?.error
-                    ?.message
+            (
+                "Gagal memulai upload. HTTP "
+                +
+                sessionResponse.status
+            )
 
-                ||
+        );
 
-                (
-                    "Upload gagal. HTTP "
-                    +
-                    uploadResponse.status
-                )
+    }
 
+
+
+    // ==========================================
+    // AMBIL UPLOAD URL
+    // ==========================================
+
+    const uploadUrl =
+        sessionResponse
+            .headers
+            .get(
+                "Location"
             );
 
-        }
+
+
+    if (
+        !uploadUrl
+    ) {
+
+        throw new Error(
+
+            "Google Drive tidak memberikan "
+            +
+            "Resumable Upload URL."
+
+        );
+
+    }
 
 
 
-        // ======================================
-        // BERHASIL
-        // ======================================
+    // ==========================================
+    // UPLOAD FILE
+    // ==========================================
 
-        console.log(
-            "Upload Google Drive berhasil ✅"
+    const uploadResponse =
+        await fetch(
+
+            uploadUrl,
+
+            {
+
+                method:
+                    "PUT",
+
+                headers: {
+
+                    "Content-Type":
+                        mimeType
+
+                },
+
+                body:
+                    file
+
+            }
+
         );
 
 
-        console.log(
-            "Google File ID tersedia:",
-            !!data?.id
-        );
+
+    let data =
+        null;
 
 
-        return data;
+    try {
 
+        data =
+            await uploadResponse.json();
 
     }
 
     catch(error) {
 
-
         console.error(
-            "Upload Google Drive Error:",
+            "Response upload bukan JSON:",
             error
         );
 
-
-        alert(
-
-            "Upload foto gagal.\n\n"
-
-            +
-
-            error.message
-
-        );
-
-
-        return null;
-
-    }
-
-}
-
-
-
-// ======================================================
-// 13. TEST UPLOAD DRIVE
-// ======================================================
-
-async function testUploadGoogleDrive() {
-
-
-    console.log(
-        "Tipe:",
-        file.type
-    );
-
-
-
-    // ==========================================
-    // CARI INPUT
-    // ==========================================
-
-    const input =
-        document.getElementById(
-            "testGoogleFoto"
-        );
-
-
-
-    if (
-        !input
-    ) {
-
-        alert(
-            "Input testGoogleFoto tidak ditemukan."
-        );
-
-
-        return;
-
     }
 
 
 
     // ==========================================
-    // AMBIL FILE
-    // ==========================================
-
-    const file =
-        input.files?.[0];
-
-
-
-    if (
-        !file
-    ) {
-
-        alert(
-            "Pilih foto terlebih dahulu."
-        );
-
-
-        return;
-
-    }
-
-
-
-    console.log(
-        "File dipilih:",
-        file.name
-    );
-
-
-    console.log(
-        "Ukuran:",
-        file.size,
-        "bytes"
-    );
-
-
-    console.log(
-        "Tipe:",
-        file.type
-    );
-
-}
-
-    // ==========================================
-    // GOOGLE HARUS TERHUBUNG
-    // ==========================================
-
-    if (!tokenGoogleMasihValid)
-    {
-
-        alert(
-
-            "Google Drive belum terhubung.\n\n"
-
-            +
-
-            "Klik Hubungkan Google Drive terlebih dahulu."
-
-        );
-
-
-        return;
-
-    }
-
-
-
-    // ==========================================
-    // UPLOAD
-    // ==========================================
-
-    const hasil =
-        await uploadFileKeGoogleDrive(
-            file
-        );
-
-
-
-    // ==========================================
-    // BERHASIL
+    // UPLOAD GAGAL
     // ==========================================
 
     if (
-        hasil
+        !uploadResponse.ok
     ) {
 
+        throw new Error(
 
-        alert(
+            data
+                ?.error
+                ?.message
 
-            "Foto berhasil diupload ke Google Drive! 📸✅\n\n"
+            ||
 
-            +
-
-            "Nama file:\n"
-
-            +
-
-            hasil.name
-
-        );
-
-
-        console.log(
-            "TEST UPLOAD BERHASIL:",
-            hasil
-        );
-
-
-        // Reset input test
-        input.value =
-            "";
-
-    }
-
-
-    //========================================
-    // PASTIKAN GOOGLE DRIVE TERHUBUNG
-    //========================================
-
-    function pastikanGoogleDriveTerhubung(){
-
-        // Token masih aktif
-        if(!googleTokenClient) {
-
-            return;
-            
-        }
-    
-    }
-    // Google OAuth belum siap
-
-    if (googleTokenReject){
-
-        googleTokenReject(
-            new Error(
-                response.error ||
-                "Google OAuth gagal."
+            (
+                "Upload gagal. HTTP "
+                +
+                uploadResponse.status
             )
+
         );
 
-        googleTokenResolve = null;
-        googleTokenReject = null;
     }
 
 
 
-        if(
-            !googleTokenClient
-        ){
-            initGoogleDriveAuth();
-        }
-
-        if (
-            !googleTokenClient
-        ){
-            return Promise.reject(
-                new Error(
-                    "Google OAuth belum siap."
-                )
-            );
-        }
-
-        return new Promise(
-            function(resolve, reject){
-
-                googleTokenResolve =
-                resolve;
-
-                googleTokenReject =
-                reject;
-
-                googleTokenClient 
-                    .requestAccessToken({
-
-                        prompt: ""
-                    });
-            }
-        );
-    
-    
-
-// ====================================================
-// PASTKAN GOOGLE DRIVE TERHUBUNG
-// ====================================================
-
-function pastikanGoogleDriveTerhubung(){
-    
-    // Token masih valid 
-    if (
-        tokenGoogleMasihValid()
-    ){
-        return Promise.resolve(
-            googleAccessToken
-        );
-    }
-
-// Pastikan OAuth siap
-if (!googleTokenClient){
-    initGoogleDriveAuth();
-}
-
-if (!googleTokenClient){
-
-    return Promise.reject(
-        new Error(
-            "Google OAuth belum siap."
-        )
+    console.log(
+        "Upload Google Drive berhasil ✅",
+        data
     );
-}
 
-// Minta token Google
-return new Promise(
-    function(resolve, reject){
 
-        googleTokenResolve =
-        resolve;
-
-        googleTokenReject =
-        reject;
-
-        googleTokenClient
-            .requestAccessToken({
-
-                prompt:
-                    "consent"
-            });
-    }
-);
+    return data;
 
 }
 
-    
+
 
 // ======================================================
-// 14. EXPORT KE WINDOW
-// Supaya onclick HTML dapat memanggil fungsi
+// 16. EXPORT KE WINDOW
 // ======================================================
 
 window.initGoogleDriveAuth =
@@ -1659,9 +1302,9 @@ window.pastikanFolderMyJourney =
     pastikanFolderMyJourney;
 
 
-window.uploadFileKeGoogleDrive =
-    uploadFileKeGoogleDrive;
-
-
 window.pastikanGoogleDriveTerhubung =
     pastikanGoogleDriveTerhubung;
+
+
+window.uploadFileKeGoogleDrive =
+    uploadFileKeGoogleDrive;
