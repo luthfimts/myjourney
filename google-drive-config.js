@@ -1,113 +1,43 @@
+// ======================================================
+// GOOGLE DRIVE CONFIG - MYJOURNEY
+// ======================================================
+
+
+// GANTI DENGAN CLIENT ID GOOGLE ANDA
 const GOOGLE_CLIENT_ID =
-    "143061361307-628l0hi8q687ghum5f772c3g96t2t4do.apps.googleusercontent.com";
+    "143061361307-628l0hi8q687ghum5f772c3g96t2t4do.apps.googleusercontent.com;
+
 
 const GOOGLE_DRIVE_SCOPE =
     "https://www.googleapis.com/auth/drive.file";
 
-let googleAccessToken = null;
+
+// ======================================================
+// VARIABEL
+// ======================================================
+
 let googleTokenClient = null;
+
+let googleAccessToken = null;
+
+let googleTokenExpiresAt = 0;
+
+let aksiSetelahLoginGoogle = null;
+
 let googleFolderId = null;
 
-// =========================================
-// BUAT FOLDER MYJOURNEY DI GOOGLE DRIVE
-// =========================================
 
-async function buatFolderMyJourney() {
-    
-    if (!googleAccessToken){
-
-        alert(
-            "Google Drive belum terhubung."
-        );
-
-        return;
-    }
-
-    try{
-        const response =
-        await fetch(
-            "https://www.googleapis.com/drive/v3/files?fields=id,name",
-            {
-                method: "POST",
-                headers: {
-                    "Authorization":
-                    "Bearer" + googleAccessToken,
-
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body: JSON.stringify({
-                    name: 
-                    "MyJourney",
-                    nimeType:
-                    "application/vnd.google-apps.folder" 
-                })
-            }
-        );
-
-        const data=
-            await response.json();
-
-        if (!response.ok){
-
-            console.error(
-                "Google Drive API Error:",
-                data
-            );
-
-            const pesanError =
-                data?.error?.message
-                ||
-                "Terjadi kesalahan yang tidak diketahui";
-            alert(
-                "Gagal membuat folder MyJourney.\n\n"
-                +
-                pesanError
-            );
-
-            return;
-        }
-
-        googleFolderId =
-            data.id;
-
-        console.log(
-            "Folder MyJourney berhasil dibuat:",
-            googleFolderId
-        );
-
-        alert(
-            "Folder MyJourney berhasil dibuat di Google Drive! 📁"
-        );
-    }
-
-    catch(error){
-
-        console.error(
-            "Error membuat folder:",
-            error
-        );
-
-        alert(
-            "Terjadi kesalahan saat membuat folder."
-        );
-    }
-}
-
-window.buatFolderMyJourney =
-    buatFolderMyJourney;
-
-// ==========================================
-// INISIALISASI GOOGLE DRIVE
-// ==========================================
+// ======================================================
+// INISIALISASI GOOGLE OAUTH
+// ======================================================
 
 function initGoogleDriveAuth() {
 
-    console.log("Mencoba menginisialisasi Google Drive...");
+    console.log(
+        "Menyiapkan Google Drive..."
+    );
 
 
-    // Pastikan library Google sudah termuat
     if (
         typeof google === "undefined"
         ||
@@ -117,7 +47,7 @@ function initGoogleDriveAuth() {
     ) {
 
         console.error(
-            "Google Identity Services belum termuat."
+            "Google Identity Services belum tersedia."
         );
 
         return;
@@ -127,105 +57,470 @@ function initGoogleDriveAuth() {
     googleTokenClient =
         google.accounts.oauth2.initTokenClient({
 
-            client_id: GOOGLE_CLIENT_ID,
+            client_id:
+                GOOGLE_CLIENT_ID,
 
-            scope: GOOGLE_DRIVE_SCOPE,
-
-            callback: function(response) {
-
-                console.log(
-                    "Response Google:",
-                    response
-                );
+            scope:
+                GOOGLE_DRIVE_SCOPE,
 
 
-                if (response.error) {
+            callback:
+                async function(response) {
 
-                    console.error(
-                        "Google OAuth Error:",
-                        response
-                    );
 
-                    alert(
-                        "Gagal menghubungkan Google Drive.\n\n" +
+                    // ==================================
+                    // JIKA GOOGLE MENGEMBALIKAN ERROR
+                    // ==================================
+
+                    if (
                         response.error
+                    ) {
+
+                        console.error(
+                            "Google OAuth Error:",
+                            response
+                        );
+
+
+                        alert(
+                            "Google Drive gagal dihubungkan.\n\n"
+                            +
+                            response.error
+                        );
+
+
+                        return;
+                    }
+
+
+                    // ==================================
+                    // PASTIKAN ACCESS TOKEN ADA
+                    // ==================================
+
+                    if (
+                        !response.access_token
+                    ) {
+
+                        console.error(
+                            "Access token tidak ditemukan:",
+                            response
+                        );
+
+
+                        alert(
+                            "Google tidak memberikan access token."
+                        );
+
+
+                        return;
+                    }
+
+
+                    // ==================================
+                    // CEK SCOPE DRIVE.FILE
+                    // ==================================
+
+                    const scopeDiberikan =
+                        google.accounts.oauth2
+                            .hasGrantedAllScopes(
+
+                                response,
+
+                                GOOGLE_DRIVE_SCOPE
+
+                            );
+
+
+                    if (
+                        !scopeDiberikan
+                    ) {
+
+                        alert(
+                            "Izin Google Drive belum diberikan."
+                        );
+
+                        return;
+                    }
+
+
+                    // ==================================
+                    // SIMPAN TOKEN
+                    // ==================================
+
+                    googleAccessToken =
+                        response.access_token;
+
+
+                    // expires_in biasanya dalam detik
+
+                    const expiresIn =
+                        Number(
+                            response.expires_in
+                        )
+                        ||
+                        3600;
+
+
+                    // kurangi 1 menit sebagai pengaman
+
+                    googleTokenExpiresAt =
+                        Date.now()
+                        +
+                        (
+                            expiresIn
+                            *
+                            1000
+                        )
+                        -
+                        60000;
+
+
+                    console.log(
+                        "Google OAuth berhasil."
                     );
 
-                    return;
+
+                    // ==================================
+                    // JALANKAN AKSI YANG TERTUNDA
+                    // ==================================
+
+                    if (
+                        typeof aksiSetelahLoginGoogle
+                        ===
+                        "function"
+                    ) {
+
+                        const aksi =
+                            aksiSetelahLoginGoogle;
+
+
+                        aksiSetelahLoginGoogle =
+                            null;
+
+
+                        await aksi();
+
+                    }
+
                 }
-
-
-                googleAccessToken =
-                    response.access_token;
-
-
-                console.log(
-                    "Google Access Token berhasil diterima."
-                );
-
-
-                alert(
-                    "Google Drive berhasil terhubung! ✅"
-                );
-
-            }
 
         });
 
 
     console.log(
-        "Google Drive OAuth siap ✅"
+        "Google OAuth siap ✅"
     );
 
 }
 
 
 
-// ==========================================
-// HUBUNGKAN GOOGLE DRIVE
-// ==========================================
+// ======================================================
+// CEK TOKEN MASIH VALID
+// ======================================================
 
-function hubungkanGoogleDrive() {
+function tokenGoogleMasihValid() {
 
-    console.log(
-        "Tombol Hubungkan Google Drive diklik."
+    return (
+
+        googleAccessToken
+
+        &&
+
+        Date.now()
+        <
+        googleTokenExpiresAt
+
     );
 
+}
 
-    // Kalau belum siap, coba inisialisasi lagi
-    if (!googleTokenClient) {
+
+
+// ======================================================
+// MINTA ACCESS TOKEN GOOGLE
+// ======================================================
+
+function mintaTokenGoogle(
+    callback
+) {
+
+    if (
+        !googleTokenClient
+    ) {
 
         initGoogleDriveAuth();
 
     }
 
 
-    if (!googleTokenClient) {
+    if (
+        !googleTokenClient
+    ) {
 
         alert(
-            "Google Drive belum siap.\n\n" +
-            "Coba refresh halaman."
+            "Google OAuth belum siap.\n\n"
+            +
+            "Refresh halaman lalu coba lagi."
         );
 
         return;
     }
 
 
-    googleTokenClient.requestAccessToken({
+    aksiSetelahLoginGoogle =
+        callback;
 
-        prompt: "consent"
 
-    });
+    googleTokenClient
+        .requestAccessToken({
+
+            prompt:
+                "consent"
+
+        });
 
 }
 
 
-// ==========================================
-// PASTIKAN BISA DIPANGGIL DARI HTML
-// ==========================================
+
+// ======================================================
+// TOMBOL HUBUNGKAN GOOGLE DRIVE
+// ======================================================
+
+function hubungkanGoogleDrive() {
+
+
+    // Jika token masih aktif
+
+    if (
+        tokenGoogleMasihValid()
+    ) {
+
+        alert(
+            "Google Drive sudah terhubung! ✅"
+        );
+
+        return;
+    }
+
+
+    mintaTokenGoogle(
+
+        async function() {
+
+            alert(
+                "Google Drive berhasil terhubung! ✅"
+            );
+
+        }
+
+    );
+
+}
+
+
+
+// ======================================================
+// BUAT FOLDER MYJOURNEY
+// ======================================================
+
+async function buatFolderMyJourney() {
+
+
+    // ==========================================
+    // TOKEN TIDAK ADA / SUDAH EXPIRED
+    // ==========================================
+
+    if (
+        !tokenGoogleMasihValid()
+    ) {
+
+
+        console.log(
+            "Meminta access token Google baru..."
+        );
+
+
+        mintaTokenGoogle(
+
+            async function() {
+
+                await buatFolderMyJourney();
+
+            }
+
+        );
+
+
+        return;
+
+    }
+
+
+
+    console.log(
+        "Membuat folder MyJourney..."
+    );
+
+
+    try {
+
+
+        const response =
+            await fetch(
+
+                "https://www.googleapis.com/drive/v3/files?fields=id,name",
+
+                {
+
+                    method:
+                        "POST",
+
+
+                    headers: {
+
+                        "Authorization":
+                            "Bearer "
+                            +
+                            googleAccessToken,
+
+                        "Content-Type":
+                            "application/json"
+
+                    },
+
+
+                    body:
+                        JSON.stringify({
+
+                            name:
+                                "MyJourney",
+
+                            mimeType:
+                                "application/vnd.google-apps.folder"
+
+                        })
+
+                }
+
+            );
+
+
+
+        const data =
+            await response.json();
+
+
+
+        // ==========================================
+        // API ERROR
+        // ==========================================
+
+        if (
+            !response.ok
+        ) {
+
+
+            console.error(
+                "Google Drive API Error:",
+                data
+            );
+
+
+            const pesanError =
+
+                data
+                    ?.error
+                    ?.message
+
+                ||
+
+                "Terjadi kesalahan yang tidak diketahui.";
+
+
+
+            // Token ditolak Google
+            if (
+                response.status === 401
+            ) {
+
+                googleAccessToken =
+                    null;
+
+                googleTokenExpiresAt =
+                    0;
+
+            }
+
+
+            alert(
+
+                "Gagal membuat folder MyJourney.\n\n"
+
+                +
+
+                pesanError
+
+            );
+
+
+            return;
+
+        }
+
+
+
+        // ==========================================
+        // BERHASIL
+        // ==========================================
+
+        googleFolderId =
+            data.id;
+
+
+        console.log(
+            "Folder berhasil dibuat:",
+            data.name,
+            googleFolderId
+        );
+
+
+        alert(
+            "Folder MyJourney berhasil dibuat di Google Drive! 📁"
+        );
+
+
+    }
+
+    catch(error) {
+
+
+        console.error(
+            "Error:",
+            error
+        );
+
+
+        alert(
+            "Terjadi kesalahan saat menghubungi Google Drive."
+        );
+
+    }
+
+}
+
+
+
+// ======================================================
+// SUPAYA FUNGSI BISA DIPANGGIL DARI HTML
+// ======================================================
 
 window.initGoogleDriveAuth =
     initGoogleDriveAuth;
 
 window.hubungkanGoogleDrive =
     hubungkanGoogleDrive;
+
+window.buatFolderMyJourney =
+    buatFolderMyJourney;
