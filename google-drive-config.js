@@ -149,6 +149,8 @@ async function cariFolderMyJourney() {
 
 
 
+
+
 // ======================================================
 // CARI / BUAT FOLDER MYJOURNEY
 // ======================================================
@@ -291,6 +293,163 @@ async function buatFolderMyJourney() {
     }
 
 }
+
+
+// ==========================================
+// UPLOAD FILE KE GOOGLE DRIVE
+// ==========================================
+
+async function uploadFileKeGoogleDrive(file){
+
+    if (!googleAccessToken){
+
+        alert(
+            "Google Drive belum terhubung."
+        )
+
+        return null;
+    }
+
+    if (!googleFolderId){
+        alert(
+            "Folder MyJourney belum siap."
+        );
+
+        return null;
+    }
+
+    if (!file){
+        alert(
+            "File belum dipilih."
+        );
+
+        return null;
+    }
+
+    try {
+
+        // ==================================   
+        //  METADATA FILE
+        // ==================================
+
+        const metadata = {
+                name:
+                    Date.now()
+                    +
+                    "-"
+                    +
+                    file.name,
+
+                parent: [
+                    googleFolderId
+                ]
+            };
+
+
+          // ================================
+          // MULTIPART FORM
+          // ================================
+
+          const form =
+          new formatData();
+
+          form.append(
+
+            "metadata",
+            new Blob(
+                [
+                    JSON.stringify(
+                        metadata
+                    )
+                ],
+                    {
+                        type:
+                            "application/json"
+                    }
+            )
+          );
+
+          form.append(
+            "file",
+            file
+          );
+
+          // =========================================
+          // UPLOAD
+          // =========================================
+
+          const response =
+            await fetch(
+                "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType,size",
+
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Authorization":
+                        'Bearer ${googleAccessToken}'
+                    },
+
+                    body:
+                     form
+                }
+            );
+
+            const data =
+            await response.json();
+
+            if (!response.ok){
+                console.error(
+                    "Upload Drive Error",
+                    data
+                );
+
+                alert(
+                    "Upload foto gagal.\n\n"
+
+                    *
+                    (
+                        data?.error?.message
+                        ||
+                        "Error tidak diketahui."
+                    )
+                );
+
+                return null;
+            }
+
+            console.log(
+                 "Upload berhasil:",
+            data
+
+            );
+
+            alert(
+                 "Foto berhasil diupload ke Google Drive! 📸✅"
+            );
+
+            return data;
+           
+        }
+
+        catch(error){
+            console.error(
+                "Upload error:",
+                error
+            );
+
+            alert(
+                "Terjadi kesalahan saat upload ke Google Drive"
+            );
+
+            return null;
+        }
+    }
+
+  window.uploadFileKeGoogleDrive =
+    uploadFileKeGoogleDrive;
+
 // ==========================================
 // INISIALISASI GOOGLE DRIVE
 // ==========================================
