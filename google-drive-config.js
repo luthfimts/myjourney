@@ -1596,12 +1596,13 @@ window.buatFolderMyJourney =
     buatFolderMyJourney;
 
 
+window.pastikanFolderMyJourney =
+    pastikanFolderMyJourney;
+    
+
 window.uploadFileKeGoogleDrive =
     uploadFileKeGoogleDrive;
 
-
-window.testUploadGoogleDrive =
-    testUploadGoogleDrive;
 
 window.pastikanGoogleDriveTerhubung =
     pastikanGoogleDriveTerhubung;
