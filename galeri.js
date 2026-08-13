@@ -1,6 +1,6 @@
 // ======================================================
 // GALERI.JS - MYJOURNEY
-// VERSI SUPABASE CLOUD
+// SUPABASE DATABASE + SUPABASE STORAGE + GOOGLE DRIVE
 // ======================================================
 
 
@@ -9,10 +9,17 @@
 // ======================================================
 
 const NAMA_BUCKET = "kenangan";
+
 const NAMA_TABEL = "galeri";
 
-// Signed URL berlaku 1 jam
-const SIGNED_URL_DURATION = 60 * 60;
+const SIGNED_URL_DURATION =
+    60 * 60;
+
+
+// Maksimal foto 50 MB
+const MAKSIMAL_UKURAN_FOTO =
+    50 * 1024 * 1024;
+
 
 
 // ======================================================
@@ -20,56 +27,99 @@ const SIGNED_URL_DURATION = 60 * 60;
 // ======================================================
 
 const galleryGrid =
-    document.getElementById("galleryGrid");
+    document.getElementById(
+        "galleryGrid"
+    );
+
 
 const photoModal =
-    document.getElementById("photoModal");
+    document.getElementById(
+        "photoModal"
+    );
+
 
 const modalImage =
-    document.getElementById("modalImage");
+    document.getElementById(
+        "modalImage"
+    );
+
 
 const uploadFoto =
-    document.getElementById("uploadFoto");
+    document.getElementById(
+        "uploadFoto"
+    );
+
 
 const uploadModal =
-    document.getElementById("uploadModal");
+    document.getElementById(
+        "uploadModal"
+    );
+
 
 const uploadPreview =
-    document.getElementById("uploadPreview");
+    document.getElementById(
+        "uploadPreview"
+    );
+
 
 const judulFoto =
-    document.getElementById("judulFoto");
+    document.getElementById(
+        "judulFoto"
+    );
+
 
 const lokasiFoto =
-    document.getElementById("lokasiFoto");
+    document.getElementById(
+        "lokasiFoto"
+    );
+
 
 const tanggalFoto =
-    document.getElementById("tanggalFoto");
+    document.getElementById(
+        "tanggalFoto"
+    );
+
 
 
 // ======================================================
 // VARIABEL
 // ======================================================
 
-let userAktif = null;
+let userAktif =
+    null;
 
-let fileFotoDipilih = null;
 
-let previewObjectURL = null;
+let fileFotoDipilih =
+    null;
+
+
+let previewObjectURL =
+    null;
+
+
+// Menyimpan Blob URL Google Drive
+// supaya bisa dibersihkan ketika refresh galeri
+let googleBlobURLs =
+    [];
+
 
 
 // ======================================================
-// JALANKAN SAAT HALAMAN DIBUKA
+// MULAI
 // ======================================================
 
 document.addEventListener(
+
     "DOMContentLoaded",
-    async function () {
+
+    async function() {
 
         await mulaiGaleri();
 
     }
+
 );
+
 
 
 // ======================================================
@@ -78,14 +128,11 @@ document.addEventListener(
 
 async function mulaiGaleri() {
 
+
     tampilkanLoading(
         "Memuat Galeri Kenangan..."
     );
 
-
-    // ==========================================
-    // CEK USER SUPABASE
-    // ==========================================
 
     const {
         data,
@@ -97,18 +144,20 @@ async function mulaiGaleri() {
 
 
     if (
-        error
-        ||
+        error ||
         !data.user
     ) {
+
 
         console.error(
             "User tidak ditemukan:",
             error
         );
 
+
         window.location.href =
             "index.html";
+
 
         return;
     }
@@ -124,10 +173,6 @@ async function mulaiGaleri() {
     );
 
 
-    // ==========================================
-    // MUAT GALERI
-    // ==========================================
-
     await tampilkanGaleri();
 
 }
@@ -142,10 +187,12 @@ function tampilkanLoading(
     pesan
 ) {
 
-    if (!galleryGrid) {
+
+    if (
+        !galleryGrid
+    ) {
 
         return;
-
     }
 
 
@@ -165,6 +212,7 @@ function tampilkanLoading(
 
             </div>
 
+
             <h2>
                 ${pesan}
             </h2>
@@ -178,23 +226,24 @@ function tampilkanLoading(
 
 
 // ======================================================
-// FORMAT TANGGAL INDONESIA
+// FORMAT TANGGAL
 // ======================================================
 
 function formatTanggalIndonesia(
     tanggalString
 ) {
 
-    if (!tanggalString) {
+
+    if (
+        !tanggalString
+    ) {
 
         return "-";
-
     }
 
 
     const parts =
-        tanggalString
-            .split("-");
+        tanggalString.split("-");
 
 
     if (
@@ -202,25 +251,36 @@ function formatTanggalIndonesia(
     ) {
 
         return tanggalString;
-
     }
 
 
     const tahun =
-        Number(parts[0]);
+        Number(
+            parts[0]
+        );
+
 
     const bulan =
-        Number(parts[1]);
+        Number(
+            parts[1]
+        );
+
 
     const hari =
-        Number(parts[2]);
+        Number(
+            parts[2]
+        );
 
 
     const tanggal =
         new Date(
+
             tahun,
+
             bulan - 1,
+
             hari
+
         );
 
 
@@ -230,9 +290,16 @@ function formatTanggalIndonesia(
             "id-ID",
 
             {
-                day: "numeric",
-                month: "long",
-                year: "numeric"
+
+                day:
+                    "numeric",
+
+                month:
+                    "long",
+
+                year:
+                    "numeric"
+
             }
 
         );
@@ -242,10 +309,11 @@ function formatTanggalIndonesia(
 
 
 // ======================================================
-// AMBIL DATA GALERI DARI DATABASE
+// AMBIL DATA GALERI DARI SUPABASE
 // ======================================================
 
 async function ambilDataGaleri() {
+
 
     const {
         data,
@@ -264,26 +332,35 @@ async function ambilDataGaleri() {
                 lokasi,
                 tanggal,
                 foto_path,
+                google_file_id,
+                google_file_name,
                 created_at
             `)
 
             .order(
+
                 "created_at",
+
                 {
-                    ascending: false
+                    ascending:
+                        false
                 }
+
             );
 
 
-    if (error) {
+    if (
+        error
+    ) {
+
 
         console.error(
             "Gagal mengambil galeri:",
             error
         );
 
-        throw error;
 
+        throw error;
     }
 
 
@@ -294,12 +371,22 @@ async function ambilDataGaleri() {
 
 
 // ======================================================
-// BUAT SIGNED URL FOTO
+// SUPABASE STORAGE
+// BUAT SIGNED URL FOTO LAMA
 // ======================================================
 
 async function buatSignedURL(
     fotoPath
 ) {
+
+
+    if (
+        !fotoPath
+    ) {
+
+        return null;
+    }
+
 
     const {
         data,
@@ -323,11 +410,14 @@ async function buatSignedURL(
             );
 
 
-    if (error) {
+    if (
+        error
+    ) {
+
 
         console.error(
 
-            "Gagal membuat URL foto:",
+            "Gagal membuat Signed URL:",
 
             fotoPath,
 
@@ -337,11 +427,198 @@ async function buatSignedURL(
 
 
         return null;
-
     }
 
 
     return data.signedUrl;
+
+}
+
+
+
+// ======================================================
+// GOOGLE DRIVE
+// AMBIL FOTO PRIVATE
+// ======================================================
+
+async function ambilURLGoogleDrive(
+    googleFileId
+) {
+
+
+    if (
+        !googleFileId
+    ) {
+
+        return null;
+    }
+
+
+    try {
+
+
+        // ======================================
+        // PASTIKAN GOOGLE DRIVE TERHUBUNG
+        // ======================================
+
+        const token =
+            await pastikanGoogleDriveTerhubung();
+
+
+        if (
+            !token
+        ) {
+
+            return null;
+        }
+
+
+
+        // ======================================
+        // DOWNLOAD FILE DARI GOOGLE DRIVE
+        // ======================================
+
+        const response =
+            await fetch(
+
+                "https://www.googleapis.com/drive/v3/files/"
+
+                +
+
+                encodeURIComponent(
+                    googleFileId
+                )
+
+                +
+
+                "?alt=media",
+
+                {
+
+                    method:
+                        "GET",
+
+                    headers: {
+
+                        Authorization:
+                            `Bearer ${token}`
+
+                    }
+
+                }
+
+            );
+
+
+
+        if (
+            !response.ok
+        ) {
+
+
+            console.error(
+
+                "Gagal mengambil foto Google Drive.",
+
+                googleFileId,
+
+                response.status
+
+            );
+
+
+            return null;
+        }
+
+
+
+        // ======================================
+        // UBAH MENJADI BLOB
+        // ======================================
+
+        const blob =
+            await response.blob();
+
+
+
+        // ======================================
+        // BUAT URL UNTUK IMG
+        // ======================================
+
+        const objectURL =
+            URL.createObjectURL(
+                blob
+            );
+
+
+        googleBlobURLs.push(
+            objectURL
+        );
+
+
+        return objectURL;
+
+
+    }
+
+    catch(error) {
+
+
+        console.error(
+
+            "Gagal memuat foto Google Drive:",
+
+            googleFileId,
+
+            error
+
+        );
+
+
+        // Jangan membuat seluruh galeri gagal
+        return null;
+
+    }
+
+}
+
+
+
+// ======================================================
+// BERSIHKAN BLOB URL GOOGLE
+// ======================================================
+
+function bersihkanGoogleBlobURLs() {
+
+
+    for (
+        const url
+        of
+        googleBlobURLs
+    ) {
+
+
+        try {
+
+            URL.revokeObjectURL(
+                url
+            );
+
+        }
+
+        catch(error) {
+
+            console.error(
+                error
+            );
+
+        }
+
+    }
+
+
+    googleBlobURLs =
+        [];
 
 }
 
@@ -353,6 +630,7 @@ async function buatSignedURL(
 
 async function tampilkanGaleri() {
 
+
     tampilkanLoading(
         "Memuat foto..."
     );
@@ -362,23 +640,29 @@ async function tampilkanGaleri() {
 
 
         // ======================================
-        // AMBIL METADATA DARI DATABASE
+        // BERSIHKAN URL GOOGLE LAMA
+        // ======================================
+
+        bersihkanGoogleBlobURLs();
+
+
+
+        // ======================================
+        // AMBIL DATA DATABASE
         // ======================================
 
         const daftarFoto =
             await ambilDataGaleri();
 
 
-        // ======================================
-        // KOSONGKAN GALERI
-        // ======================================
 
         galleryGrid.innerHTML =
             "";
 
 
+
         // ======================================
-        // JIKA BELUM ADA FOTO
+        // BELUM ADA FOTO
         // ======================================
 
         if (
@@ -391,24 +675,18 @@ async function tampilkanGaleri() {
                 <div class="empty-gallery">
 
                     <div class="icon">
-
                         📷
-
                     </div>
 
 
                     <h2>
-
                         Belum ada foto kenangan
-
                     </h2>
 
 
                     <p>
-
                         Klik tombol + Upload Foto
                         untuk menambahkan foto.
-
                     </p>
 
                 </div>
@@ -417,7 +695,6 @@ async function tampilkanGaleri() {
 
 
             return;
-
         }
 
 
@@ -427,23 +704,68 @@ async function tampilkanGaleri() {
         // ======================================
 
         for (
-            const item of daftarFoto
+            const item
+            of
+            daftarFoto
         ) {
 
 
-            // Buat URL sementara
-            // karena bucket private
+            let imageURL =
+                null;
 
-            const signedURL =
-                await buatSignedURL(
-                    item.foto_path
-                );
 
+
+            // ==================================
+            // FOTO GOOGLE DRIVE
+            // ==================================
+
+            if (
+                item.google_file_id
+            ) {
+
+
+                imageURL =
+                    await ambilURLGoogleDrive(
+
+                        item.google_file_id
+
+                    );
+
+            }
+
+
+
+            // ==================================
+            // FOTO LAMA SUPABASE STORAGE
+            // ==================================
+
+            else if (
+                item.foto_path
+            ) {
+
+
+                imageURL =
+                    await buatSignedURL(
+
+                        item.foto_path
+
+                    );
+
+            }
+
+
+
+            // ==================================
+            // BUAT CARD
+            // ==================================
 
             const card =
                 buatCardFoto(
+
                     item,
-                    signedURL
+
+                    imageURL
+
                 );
 
 
@@ -460,6 +782,7 @@ async function tampilkanGaleri() {
 
 
         console.error(
+            "Tampilkan Galeri Error:",
             error
         );
 
@@ -469,24 +792,18 @@ async function tampilkanGaleri() {
             <div class="empty-gallery">
 
                 <div class="icon">
-
                     ⚠️
-
                 </div>
 
 
                 <h2>
-
                     Galeri gagal dimuat
-
                 </h2>
 
 
                 <p>
-
-                    Periksa koneksi internet
-                    atau konfigurasi Supabase.
-
+                    Terjadi kesalahan saat
+                    mengambil data galeri.
                 </p>
 
             </div>
@@ -500,18 +817,14 @@ async function tampilkanGaleri() {
 
 
 // ======================================================
-// MEMBUAT CARD FOTO
+// BUAT CARD FOTO
 // ======================================================
 
 function buatCardFoto(
     item,
-    signedURL
+    imageURL
 ) {
 
-
-    // ==========================================
-    // CARD
-    // ==========================================
 
     const card =
         document.createElement(
@@ -524,9 +837,9 @@ function buatCardFoto(
 
 
 
-    // ==========================================
-    // CONTAINER FOTO
-    // ==========================================
+    // ==================================================
+    // GAMBAR
+    // ==================================================
 
     const imageContainer =
         document.createElement(
@@ -539,11 +852,9 @@ function buatCardFoto(
 
 
 
-    // ==========================================
-    // JIKA FOTO BERHASIL DIMUAT
-    // ==========================================
-
-    if (signedURL) {
+    if (
+        imageURL
+    ) {
 
 
         const image =
@@ -553,7 +864,7 @@ function buatCardFoto(
 
 
         image.src =
-            signedURL;
+            imageURL;
 
 
         image.alt =
@@ -572,9 +883,8 @@ function buatCardFoto(
 
             function() {
 
-
                 bukaFoto(
-                    signedURL
+                    imageURL
                 );
 
             }
@@ -598,19 +908,28 @@ function buatCardFoto(
                 style="
                     width:100%;
                     height:100%;
-
                     display:flex;
-
+                    flex-direction:column;
                     justify-content:center;
                     align-items:center;
-
-                    font-size:45px;
-
+                    font-size:40px;
                     background:#e5e7eb;
+                    color:#6b7280;
+                    text-align:center;
+                    padding:15px;
                 "
             >
 
                 📷
+
+                <div
+                    style="
+                        font-size:12px;
+                        margin-top:8px;
+                    "
+                >
+                    Foto belum dapat dimuat
+                </div>
 
             </div>
 
@@ -620,9 +939,9 @@ function buatCardFoto(
 
 
 
-    // ==========================================
+    // ==================================================
     // INFORMASI
-    // ==========================================
+    // ==================================================
 
     const info =
         document.createElement(
@@ -634,10 +953,6 @@ function buatCardFoto(
         "gallery-info";
 
 
-
-    // ==========================================
-    // JUDUL
-    // ==========================================
 
     const judul =
         document.createElement(
@@ -651,10 +966,6 @@ function buatCardFoto(
         "Foto Kenangan";
 
 
-
-    // ==========================================
-    // LOKASI
-    // ==========================================
 
     const lokasi =
         document.createElement(
@@ -675,10 +986,6 @@ function buatCardFoto(
         );
 
 
-
-    // ==========================================
-    // TANGGAL
-    // ==========================================
 
     const tanggal =
         document.createElement(
@@ -702,9 +1009,39 @@ function buatCardFoto(
 
 
 
-    // ==========================================
-    // TOMBOL
-    // ==========================================
+    // ==================================================
+    // SUMBER FOTO
+    // ==================================================
+
+    const sumber =
+        document.createElement(
+            "p"
+        );
+
+
+    if (
+        item.google_file_id
+    ) {
+
+
+        sumber.textContent =
+            "☁ Google Drive";
+
+    }
+
+    else {
+
+
+        sumber.textContent =
+            "☁ Supabase";
+
+    }
+
+
+
+    // ==================================================
+    // ACTIONS
+    // ==================================================
 
     const actions =
         document.createElement(
@@ -716,10 +1053,6 @@ function buatCardFoto(
         "gallery-actions";
 
 
-
-    // ==========================================
-    // HAPUS FOTO
-    // ==========================================
 
     const deleteButton =
         document.createElement(
@@ -733,6 +1066,7 @@ function buatCardFoto(
 
     deleteButton.innerHTML =
         "🗑 Hapus Foto";
+
 
 
     deleteButton.addEventListener(
@@ -749,9 +1083,7 @@ function buatCardFoto(
 
             await hapusFoto(
 
-                item.id,
-
-                item.foto_path,
+                item,
 
                 deleteButton
 
@@ -762,10 +1094,6 @@ function buatCardFoto(
     );
 
 
-
-    // ==========================================
-    // MASUKKAN
-    // ==========================================
 
     actions.appendChild(
         deleteButton
@@ -784,6 +1112,11 @@ function buatCardFoto(
 
     info.appendChild(
         tanggal
+    );
+
+
+    info.appendChild(
+        sumber
     );
 
 
@@ -809,19 +1142,23 @@ function buatCardFoto(
 
 
 // ======================================================
-// TOMBOL + UPLOAD FOTO
+// + UPLOAD FOTO
 // ======================================================
 
 function pilihFoto() {
 
-    if (!uploadFoto) {
+
+    if (
+        !uploadFoto
+    ) {
+
 
         alert(
             "Input uploadFoto tidak ditemukan."
         );
 
-        return;
 
+        return;
     }
 
 
@@ -832,10 +1169,12 @@ function pilihFoto() {
 
 
 // ======================================================
-// KETIKA USER MEMILIH FOTO
+// PILIH FILE FOTO
 // ======================================================
 
-if (uploadFoto) {
+if (
+    uploadFoto
+) {
 
 
     uploadFoto.addEventListener(
@@ -846,19 +1185,21 @@ if (uploadFoto) {
 
 
             const file =
-                uploadFoto.files[0];
+                uploadFoto.files?.[0];
 
 
-            if (!file) {
+
+            if (
+                !file
+            ) {
 
                 return;
-
             }
 
 
 
             // ======================================
-            // VALIDASI FILE GAMBAR
+            // HARUS GAMBAR
             // ======================================
 
             if (
@@ -878,27 +1219,17 @@ if (uploadFoto) {
 
 
                 return;
-
             }
 
 
 
             // ======================================
-            // BATASI 5 MB
+            // BATAS 50 MB
             // ======================================
 
-            const maksimalUkuran =
-                5
-                *
-                1024
-                *
-                1024;
-
-
             if (
-                file.size
-                >
-                maksimalUkuran
+                file.size >
+                MAKSIMAL_UKURAN_FOTO
             ) {
 
 
@@ -908,7 +1239,7 @@ if (uploadFoto) {
 
                     +
 
-                    "Gunakan foto maksimal 5 MB."
+                    "Gunakan foto maksimal 50 MB."
 
                 );
 
@@ -918,14 +1249,9 @@ if (uploadFoto) {
 
 
                 return;
-
             }
 
 
-
-            // ======================================
-            // SIMPAN FILE
-            // ======================================
 
             fileFotoDipilih =
                 file;
@@ -950,17 +1276,18 @@ if (uploadFoto) {
 
 
             // ======================================
-            // BUAT PREVIEW
+            // PREVIEW BARU
             // ======================================
 
             previewObjectURL =
-
                 URL.createObjectURL(
                     fileFotoDipilih
                 );
 
 
-            if (uploadPreview) {
+            if (
+                uploadPreview
+            ) {
 
 
                 uploadPreview.src =
@@ -974,7 +1301,9 @@ if (uploadFoto) {
             // TAMPILKAN MODAL
             // ======================================
 
-            if (uploadModal) {
+            if (
+                uploadModal
+            ) {
 
 
                 uploadModal.style.display =
@@ -991,93 +1320,6 @@ if (uploadFoto) {
 
 
 // ======================================================
-// MEMBUAT NAMA FILE AMAN
-// ======================================================
-
-function buatNamaFile(
-    file
-) {
-
-
-    let extension =
-        "jpg";
-
-
-    if (
-        file.name
-        &&
-        file.name.includes(".")
-    ) {
-
-
-        extension =
-
-            file.name
-
-                .split(".")
-
-                .pop()
-
-                .toLowerCase()
-
-                .replace(
-                    /[^a-z0-9]/g,
-                    ""
-                );
-
-    }
-
-
-    if (!extension) {
-
-        extension =
-            "jpg";
-
-    }
-
-
-    const random =
-
-        Math.random()
-
-            .toString(36)
-
-            .substring(2, 10);
-
-
-    return (
-
-        Date.now()
-
-        +
-
-        "-"
-
-        +
-
-        random
-
-        +
-
-        "."
-
-        +
-
-        extension
-
-    );
-
-}
-
-
-
-// ==========================================
-// SIMPAN FOTO
-// GOOGLE DRIVE + SUPABASE METADATA
-// ==========================================
-
-
-// ======================================================
 // SIMPAN FOTO
 // GOOGLE DRIVE + SUPABASE METADATA
 // ======================================================
@@ -1085,43 +1327,45 @@ function buatNamaFile(
 async function simpanFoto() {
 
 
-    // ==========================================
-    // USER SUPABASE
-    // ==========================================
+    if (
+        !userAktif
+    ) {
 
-    if (!userAktif) {
 
         alert(
             "Session login tidak ditemukan."
         );
 
+
         window.location.href =
             "index.html";
+
 
         return;
     }
 
 
-    // ==========================================
-    // FILE
-    // ==========================================
 
-    if (!fileFotoDipilih) {
+    if (
+        !fileFotoDipilih
+    ) {
+
 
         alert(
             "Silakan pilih foto terlebih dahulu."
         );
 
+
         return;
     }
 
 
-    // ==========================================
-    // DATA FORM
-    // ==========================================
+
+    // ==================================================
+    // FORM
+    // ==================================================
 
     const judul =
-
         judulFoto
         ?
         judulFoto.value.trim()
@@ -1130,7 +1374,6 @@ async function simpanFoto() {
 
 
     const lokasi =
-
         lokasiFoto
         ?
         lokasiFoto.value.trim()
@@ -1139,7 +1382,6 @@ async function simpanFoto() {
 
 
     const tanggal =
-
         tanggalFoto
         ?
         tanggalFoto.value
@@ -1147,25 +1389,24 @@ async function simpanFoto() {
         "";
 
 
-    // ==========================================
-    // VALIDASI
-    // ==========================================
 
-    if (!judul) {
+    if (
+        !judul
+    ) {
+
 
         alert(
             "Judul foto harus diisi."
         );
 
+
         judulFoto?.focus();
+
 
         return;
     }
 
 
-    // ==========================================
-    // TOMBOL SIMPAN
-    // ==========================================
 
     const tombolSimpan =
         document.querySelector(
@@ -1173,41 +1414,60 @@ async function simpanFoto() {
         );
 
 
-    if (tombolSimpan) {
+
+    if (
+        tombolSimpan
+    ) {
+
 
         tombolSimpan.disabled =
             true;
 
+
         tombolSimpan.innerText =
             "Menyimpan...";
+
     }
+
+
+
+    let hasilGoogle =
+        null;
+
 
 
     try {
 
 
         // ======================================
-        // 1. PASTIKAN GOOGLE TERHUBUNG
+        // GOOGLE DRIVE
         // ======================================
 
-        if (tombolSimpan) {
+        if (
+            tombolSimpan
+        ) {
 
             tombolSimpan.innerText =
                 "Menghubungkan Google Drive...";
+
         }
 
 
         await pastikanGoogleDriveTerhubung();
 
 
+
         // ======================================
-        // 2. PASTIKAN FOLDER MYJOURNEY
+        // PASTIKAN FOLDER
         // ======================================
 
-        if (tombolSimpan) {
+        if (
+            tombolSimpan
+        ) {
 
             tombolSimpan.innerText =
                 "Menyiapkan folder...";
+
         }
 
 
@@ -1217,58 +1477,69 @@ async function simpanFoto() {
             );
 
 
-        if (!folderId) {
+        if (
+            !folderId
+        ) {
+
 
             throw new Error(
                 "Folder MyJourney tidak dapat disiapkan."
             );
+
         }
 
 
+
         // ======================================
-        // 3. UPLOAD FILE KE GOOGLE DRIVE
+        // UPLOAD GOOGLE DRIVE
         // ======================================
 
-        if (tombolSimpan) {
+        if (
+            tombolSimpan
+        ) {
 
             tombolSimpan.innerText =
                 "Mengupload foto...";
+
         }
 
 
-        const hasilGoogle =
+        hasilGoogle =
             await uploadFileKeGoogleDrive(
+
                 fileFotoDipilih
+
             );
 
 
+
         if (
-            !hasilGoogle
-            ||
+            !hasilGoogle ||
             !hasilGoogle.id
         ) {
+
 
             throw new Error(
                 "Upload ke Google Drive gagal."
             );
+
         }
 
 
-        console.log(
-            "Google File ID:",
-            hasilGoogle.id
-        );
-
 
         // ======================================
-        // 4. SIMPAN METADATA KE SUPABASE
+        // SIMPAN DATABASE
         // ======================================
 
-        if (tombolSimpan) {
+        if (
+            tombolSimpan
+        ) {
 
             tombolSimpan.innerText =
                 "Menyimpan data...";
+
         }
+
 
 
         const {
@@ -1291,14 +1562,10 @@ async function simpanFoto() {
                         judul,
 
                     lokasi:
-                        lokasi
-                        ||
-                        null,
+                        lokasi || null,
 
                     tanggal:
-                        tanggal
-                        ||
-                        null,
+                        tanggal || null,
 
                     foto_path:
                         null,
@@ -1312,45 +1579,86 @@ async function simpanFoto() {
                 });
 
 
-        if (databaseError) {
+
+        if (
+            databaseError
+        ) {
+
 
             console.error(
                 databaseError
             );
 
 
+            // Jika metadata gagal,
+            // coba hapus kembali file Google Drive
+            try {
+
+
+                await hapusFileGoogleDrive(
+
+                    hasilGoogle.id
+
+                );
+
+
+            }
+
+            catch(errorHapus) {
+
+
+                console.error(
+
+                    "Gagal membersihkan file Google Drive:",
+
+                    errorHapus
+
+                );
+
+            }
+
+
+
             throw new Error(
 
-                "Foto berhasil masuk Google Drive, "
+                "Metadata Supabase gagal disimpan: "
+
                 +
-                "tetapi metadata Supabase gagal: "
-                +
+
                 databaseError.message
 
             );
+
         }
 
 
+
         // ======================================
-        // 5. BERHASIL
+        // SUKSES
         // ======================================
 
         resetFormUpload();
 
 
-        if (uploadModal) {
+
+        if (
+            uploadModal
+        ) {
+
 
             uploadModal.style.display =
                 "none";
+
         }
 
 
+
         alert(
-            "Foto berhasil disimpan ke Google Drive! 📸✅"
+            "Foto berhasil disimpan! 📸✅"
         );
 
 
-        // Untuk sementara refresh data galeri
+
         await tampilkanGaleri();
 
 
@@ -1380,13 +1688,18 @@ async function simpanFoto() {
     finally {
 
 
-        if (tombolSimpan) {
+        if (
+            tombolSimpan
+        ) {
+
 
             tombolSimpan.disabled =
                 false;
 
+
             tombolSimpan.innerText =
                 "Simpan Foto";
+
         }
 
     }
@@ -1406,7 +1719,10 @@ function resetFormUpload() {
         null;
 
 
-    if (uploadFoto) {
+    if (
+        uploadFoto
+    ) {
+
 
         uploadFoto.value =
             "";
@@ -1414,7 +1730,10 @@ function resetFormUpload() {
     }
 
 
-    if (judulFoto) {
+    if (
+        judulFoto
+    ) {
+
 
         judulFoto.value =
             "";
@@ -1422,7 +1741,10 @@ function resetFormUpload() {
     }
 
 
-    if (lokasiFoto) {
+    if (
+        lokasiFoto
+    ) {
+
 
         lokasiFoto.value =
             "";
@@ -1430,7 +1752,10 @@ function resetFormUpload() {
     }
 
 
-    if (tanggalFoto) {
+    if (
+        tanggalFoto
+    ) {
+
 
         tanggalFoto.value =
             "";
@@ -1438,7 +1763,10 @@ function resetFormUpload() {
     }
 
 
-    if (uploadPreview) {
+    if (
+        uploadPreview
+    ) {
+
 
         uploadPreview.src =
             "";
@@ -1472,7 +1800,9 @@ function resetFormUpload() {
 function batalUpload() {
 
 
-    if (uploadModal) {
+    if (
+        uploadModal
+    ) {
 
 
         uploadModal.style.display =
@@ -1488,27 +1818,25 @@ function batalUpload() {
 
 
 // ======================================================
-// BUKA FOTO BESAR
+// BUKA FOTO
 // ======================================================
 
 function bukaFoto(
-    signedURL
+    imageURL
 ) {
 
 
     if (
-        !photoModal
-        ||
+        !photoModal ||
         !modalImage
     ) {
 
         return;
-
     }
 
 
     modalImage.src =
-        signedURL;
+        imageURL;
 
 
     photoModal.style.display =
@@ -1519,13 +1847,15 @@ function bukaFoto(
 
 
 // ======================================================
-// TUTUP FOTO BESAR
+// TUTUP FOTO
 // ======================================================
 
 function tutupFoto() {
 
 
-    if (photoModal) {
+    if (
+        photoModal
+    ) {
 
 
         photoModal.style.display =
@@ -1534,7 +1864,9 @@ function tutupFoto() {
     }
 
 
-    if (modalImage) {
+    if (
+        modalImage
+    ) {
 
 
         modalImage.src =
@@ -1547,33 +1879,132 @@ function tutupFoto() {
 
 
 // ======================================================
+// HAPUS FILE GOOGLE DRIVE
+// ======================================================
+
+async function hapusFileGoogleDrive(
+    googleFileId
+) {
+
+
+    if (
+        !googleFileId
+    ) {
+
+        return;
+    }
+
+
+    const token =
+        await pastikanGoogleDriveTerhubung();
+
+
+
+    const response =
+        await fetch(
+
+            "https://www.googleapis.com/drive/v3/files/"
+
+            +
+
+            encodeURIComponent(
+                googleFileId
+            ),
+
+            {
+
+                method:
+                    "DELETE",
+
+                headers: {
+
+                    Authorization:
+                        `Bearer ${token}`
+
+                }
+
+            }
+
+        );
+
+
+
+    if (
+        !response.ok
+    ) {
+
+
+        let pesan =
+            "Gagal menghapus file Google Drive.";
+
+
+        try {
+
+
+            const data =
+                await response.json();
+
+
+            pesan =
+                data
+                    ?.error
+                    ?.message
+                ||
+                pesan;
+
+
+        }
+
+        catch(error) {
+
+
+            console.error(
+                error
+            );
+
+        }
+
+
+
+        throw new Error(
+            pesan
+        );
+
+    }
+
+}
+
+
+
+// ======================================================
 // HAPUS FOTO
+// GOOGLE DRIVE / SUPABASE STORAGE
 // ======================================================
 
 async function hapusFoto(
-    id,
-    fotoPath,
+    item,
     tombol
 ) {
 
 
     const yakin =
         confirm(
-
             "Apakah kamu yakin ingin menghapus foto ini?"
-
         );
 
 
-    if (!yakin) {
+    if (
+        !yakin
+    ) {
 
         return;
-
     }
 
 
 
-    if (tombol) {
+    if (
+        tombol
+    ) {
 
 
         tombol.disabled =
@@ -1591,40 +2022,17 @@ async function hapusFoto(
 
 
         // ======================================
-        // 1. HAPUS FILE DARI STORAGE
+        // FOTO GOOGLE DRIVE
         // ======================================
 
-        const {
-            error:
-                storageError
-        } =
-
-            await supabaseClient
-
-                .storage
-
-                .from(
-                    NAMA_BUCKET
-                )
-
-                .remove([
-                    fotoPath
-                ]);
-
-
-
         if (
-            storageError
+            item.google_file_id
         ) {
 
 
-            throw new Error(
+            await hapusFileGoogleDrive(
 
-                "Gagal menghapus file: "
-
-                +
-
-                storageError.message
+                item.google_file_id
 
             );
 
@@ -1633,7 +2041,56 @@ async function hapusFoto(
 
 
         // ======================================
-        // 2. HAPUS METADATA DATABASE
+        // FOTO LAMA SUPABASE STORAGE
+        // ======================================
+
+        else if (
+            item.foto_path
+        ) {
+
+
+            const {
+                error:
+                    storageError
+            } =
+
+                await supabaseClient
+
+                    .storage
+
+                    .from(
+                        NAMA_BUCKET
+                    )
+
+                    .remove([
+                        item.foto_path
+                    ]);
+
+
+
+            if (
+                storageError
+            ) {
+
+
+                throw new Error(
+
+                    "Gagal menghapus file Supabase: "
+
+                    +
+
+                    storageError.message
+
+                );
+
+            }
+
+        }
+
+
+
+        // ======================================
+        // HAPUS DATABASE
         // ======================================
 
         const {
@@ -1651,7 +2108,7 @@ async function hapusFoto(
 
                 .eq(
                     "id",
-                    id
+                    item.id
                 );
 
 
@@ -1676,16 +2133,14 @@ async function hapusFoto(
 
 
         // ======================================
-        // BERHASIL
+        // SUKSES
         // ======================================
 
         await tampilkanGaleri();
 
 
         alert(
-
             "Foto berhasil dihapus! 🗑️"
-
         );
 
 
@@ -1695,6 +2150,7 @@ async function hapusFoto(
 
 
         console.error(
+            "Hapus Foto Error:",
             error
         );
 
@@ -1710,7 +2166,9 @@ async function hapusFoto(
         );
 
 
-        if (tombol) {
+        if (
+            tombol
+        ) {
 
 
             tombol.disabled =
@@ -1729,10 +2187,12 @@ async function hapusFoto(
 
 
 // ======================================================
-// KLIK AREA HITAM FOTO BESAR
+// KLIK BACKGROUND FOTO MODAL
 // ======================================================
 
-if (photoModal) {
+if (
+    photoModal
+) {
 
 
     photoModal.addEventListener(
@@ -1743,8 +2203,7 @@ if (photoModal) {
 
 
             if (
-                event.target
-                ===
+                event.target ===
                 photoModal
             ) {
 
@@ -1762,10 +2221,12 @@ if (photoModal) {
 
 
 // ======================================================
-// KLIK AREA HITAM MODAL UPLOAD
+// KLIK BACKGROUND UPLOAD MODAL
 // ======================================================
 
-if (uploadModal) {
+if (
+    uploadModal
+) {
 
 
     uploadModal.addEventListener(
@@ -1776,8 +2237,7 @@ if (uploadModal) {
 
 
             if (
-                event.target
-                ===
+                event.target ===
                 uploadModal
             ) {
 
@@ -1795,7 +2255,7 @@ if (uploadModal) {
 
 
 // ======================================================
-// TOMBOL ESC
+// ESC
 // ======================================================
 
 document.addEventListener(
@@ -1806,21 +2266,17 @@ document.addEventListener(
 
 
         if (
-            event.key
-            !==
+            event.key !==
             "Escape"
         ) {
 
             return;
-
         }
 
 
         if (
-            photoModal
-            &&
-            photoModal.style.display
-            ===
+            photoModal &&
+            photoModal.style.display ===
             "flex"
         ) {
 
@@ -1831,10 +2287,8 @@ document.addEventListener(
 
 
         if (
-            uploadModal
-            &&
-            uploadModal.style.display
-            ===
+            uploadModal &&
+            uploadModal.style.display ===
             "flex"
         ) {
 
@@ -1850,7 +2304,7 @@ document.addEventListener(
 
 
 // ======================================================
-// LOGOUT SUPABASE
+// LOGOUT
 // ======================================================
 
 async function logout() {
@@ -1863,11 +2317,15 @@ async function logout() {
         await supabaseClient
             .auth
             .signOut({
-                scope: "local"
+                scope:
+                    "local"
             });
 
 
-    if (error) {
+
+    if (
+        error
+    ) {
 
 
         console.error(
@@ -1882,7 +2340,6 @@ async function logout() {
 
 
         return;
-
     }
 
 
