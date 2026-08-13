@@ -52,12 +52,18 @@ async function buatFolderMyJourney() {
         if (!response.ok){
 
             console.error(
-                "Gagal membuat folder:",
+                "Google Drive API Error:",
                 data
             );
 
+            const pesanError =
+                data?.error?.message
+                ||
+                "Terjadi kesalahan yang tidak diketahui";
             alert(
-                "Gagal membuat folder MyJourney."
+                "Gagal membuat folder MyJourney.\n\n"
+                +
+                pesanError
             );
 
             return;
