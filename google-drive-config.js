@@ -1461,7 +1461,7 @@ async function testUploadGoogleDrive() {
         );
 
 
-        return;
+        
 
     }
 
