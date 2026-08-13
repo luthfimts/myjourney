@@ -1077,270 +1077,319 @@ function buatNamaFile(
 // ==========================================
 
 
+// ======================================================
+// SIMPAN FOTO
+// GOOGLE DRIVE + SUPABASE METADATA
+// ======================================================
+
 async function simpanFoto() {
 
-// ============================================
-// USER SUPABASE
-// ============================================
 
-if (!userAktif){
-    
-    alert(
-        "Session login tidak ditemukan."
-    );
+    // ==========================================
+    // USER SUPABASE
+    // ==========================================
 
-    window.location.href =
-        "index.html";
+    if (!userAktif) {
 
-    return;
+        alert(
+            "Session login tidak ditemukan."
+        );
 
-}
+        window.location.href =
+            "index.html";
 
-// ============================================
-// FILE
-// ============================================
+        return;
+    }
 
-if (!fileFotoDipilih){
 
-    alert(
-        "Silahkan pilih foto terlebih dahulu."
-    );
+    // ==========================================
+    // FILE
+    // ==========================================
 
-    return;
-}
+    if (!fileFotoDipilih) {
 
-// =============================================
-// DATA FORM
-// =============================================
+        alert(
+            "Silakan pilih foto terlebih dahulu."
+        );
 
-const judul =
+        return;
+    }
 
-    judulFoto
-    ?
-    judulFoto.value.trim()
-    :
-    "";
 
-const lokasi =
+    // ==========================================
+    // DATA FORM
+    // ==========================================
 
-    lokasiFoto
-    ?
-    lokasiFoto.value.trim()
-    :
-    "";
+    const judul =
 
-const tanggal =
+        judulFoto
+        ?
+        judulFoto.value.trim()
+        :
+        "";
 
-    tanggalFoto
-    ?
-    tanggalFoto.value
-    :
-    "";
 
-// ============================================
-// VALIDASI
-// ============================================
+    const lokasi =
 
-if (!judul){
+        lokasiFoto
+        ?
+        lokasiFoto.value.trim()
+        :
+        "";
 
-    alert(
-        "Judul foto harus diisi."
-    );
 
-    judulFoto.focus();
+    const tanggal =
 
-    return;
-}
+        tanggalFoto
+        ?
+        tanggalFoto.value
+        :
+        "";
 
-// ===========================================
-// TOMBOL SIMPAN
-// ===========================================
+
+    // ==========================================
+    // VALIDASI
+    // ==========================================
+
+    if (!judul) {
+
+        alert(
+            "Judul foto harus diisi."
+        );
+
+        judulFoto?.focus();
+
+        return;
+    }
+
+
+    // ==========================================
+    // TOMBOL SIMPAN
+    // ==========================================
 
     const tombolSimpan =
-    document.querySelector(
-        ".save-upload"
-    );
+        document.querySelector(
+            ".save-upload"
+        );
 
 
-    if (tombolSimpan){
+    if (tombolSimpan) {
 
         tombolSimpan.disabled =
             true;
 
         tombolSimpan.innerText =
-            "Menyimpan.......";
+            "Menyimpan...";
     }
 
-    try {
-// =========================================
-// // 1. PASTKAN GOOGLE TERHUBUNG
-// =========================================
 
-        if (tombolSimpan){
+    try {
+
+
+        // ======================================
+        // 1. PASTIKAN GOOGLE TERHUBUNG
+        // ======================================
+
+        if (tombolSimpan) {
 
             tombolSimpan.innerText =
-              "Menghubungkan Google Drive.....";
+                "Menghubungkan Google Drive...";
         }
+
 
         await pastikanGoogleDriveTerhubung();
 
- //========================================
-// 2. PASTIKAN FOLDER MYJOURNEY
-//========================================
 
-        if (tombolSimpan){
+        // ======================================
+        // 2. PASTIKAN FOLDER MYJOURNEY
+        // ======================================
+
+        if (tombolSimpan) {
 
             tombolSimpan.innerText =
-                "Menyiapkan folder.....";
+                "Menyiapkan folder...";
         }
+
 
         const folderId =
             await pastikanFolderMyJourney(
                 false
             );
 
-        if (!folderId){
+
+        if (!folderId) {
 
             throw new Error(
                 "Folder MyJourney tidak dapat disiapkan."
             );
         }
 
- // =====================================
- // 3. UPLOAD FILE KE GOOGLE DRIVE
- // =====================================
 
-        if (tombolSimpan){
+        // ======================================
+        // 3. UPLOAD FILE KE GOOGLE DRIVE
+        // ======================================
+
+        if (tombolSimpan) {
+
             tombolSimpan.innerText =
-                "Mengupload foto....";
+                "Mengupload foto...";
         }
 
-        const hasilGoogle =
-        await uploadFileKeGoogleDrive(
-            fileFotoDipilih
-        );
 
-        if(
+        const hasilGoogle =
+            await uploadFileKeGoogleDrive(
+                fileFotoDipilih
+            );
+
+
+        if (
             !hasilGoogle
             ||
             !hasilGoogle.id
         ) {
+
             throw new Error(
-                "Upload ke Google Drive Gagal."
+                "Upload ke Google Drive gagal."
             );
         }
+
 
         console.log(
             "Google File ID:",
             hasilGoogle.id
         );
 
-//============================================
-// 4. SIMPAN METADATA KE SUPABASE
-//============================================
 
-        if (tombolSimpan){
+        // ======================================
+        // 4. SIMPAN METADATA KE SUPABASE
+        // ======================================
+
+        if (tombolSimpan) {
+
             tombolSimpan.innerText =
                 "Menyimpan data...";
         }
+
 
         const {
             error:
                 databaseError
         } =
 
-        await supabaseClient
-            .from(
-                NAMA_TABEL
-            )
+            await supabaseClient
 
-            .insert({
-                user_id:
-                userAktif.id,
+                .from(
+                    NAMA_TABEL
+                )
 
-                judul:
-                judul,
-                
-                lokasi:
-                lokasi
-                ||
-                null,
+                .insert({
 
-                tanggal:
-                tanggal
-                ||
-                null,
+                    user_id:
+                        userAktif.id,
 
-                foto_path:
-                null,
+                    judul:
+                        judul,
 
-                google_filde_id:
-                hasilGoogle.id,
+                    lokasi:
+                        lokasi
+                        ||
+                        null,
 
-                google_file_name:
-                hasilGoogle.name
-            });
+                    tanggal:
+                        tanggal
+                        ||
+                        null,
 
-        if (databaseError){
+                    foto_path:
+                        null,
+
+                    google_file_id:
+                        hasilGoogle.id,
+
+                    google_file_name:
+                        hasilGoogle.name
+
+                });
+
+
+        if (databaseError) {
 
             console.error(
                 databaseError
             );
 
+
             throw new Error(
-                "Foto berhasi masuk Google Drive,"
+
+                "Foto berhasil masuk Google Drive, "
                 +
-                "tetapi metadata Superbase gagal:"
+                "tetapi metadata Supabase gagal: "
                 +
                 databaseError.message
+
             );
         }
 
-        // ========================================
+
+        // ======================================
         // 5. BERHASIL
-        // ========================================
+        // ======================================
 
         resetFormUpload();
 
-        if(uploadModal){
-            "none";
+
+        if (uploadModal) {
+
+            uploadModal.style.display =
+                "none";
         }
+
 
         alert(
             "Foto berhasil disimpan ke Google Drive! 📸✅"
         );
 
+
         // Untuk sementara refresh data galeri
         await tampilkanGaleri();
 
+
     }
 
-    catch(error){
+    catch(error) {
+
+
         console.error(
             "Simpan Foto Error:",
             error
         );
 
-    alert(
-        "Foto gagal disimppan.\n\n"
 
-        +
+        alert(
 
-        error.message
-    );
+            "Foto gagal disimpan.\n\n"
 
+            +
+
+            error.message
+
+        );
 
     }
 
     finally {
-        if(tombolSimpan){
+
+
+        if (tombolSimpan) {
+
             tombolSimpan.disabled =
-            false;
+                false;
 
             tombolSimpan.innerText =
-            "Simpan Foto";
+                "Simpan Foto";
         }
-    } 
+
+    }
 
 }
 
