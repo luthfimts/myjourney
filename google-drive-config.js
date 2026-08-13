@@ -4,24 +4,52 @@ const GOOGLE_CLIENT_ID =
 const GOOGLE_DRIVE_SCOPE =
     "https://www.googleapis.com/auth/drive.file";
 
-
 let googleAccessToken = null;
 let googleTokenClient = null;
 
-// ==============================================
-// SIAPKAN GOOGLE OAUTH
-//===============================================
 
-function initGoogleDriveAuth(){
+// ==========================================
+// INISIALISASI GOOGLE DRIVE
+// ==========================================
+
+function initGoogleDriveAuth() {
+
+    console.log("Mencoba menginisialisasi Google Drive...");
+
+
+    // Pastikan library Google sudah termuat
+    if (
+        typeof google === "undefined"
+        ||
+        !google.accounts
+        ||
+        !google.accounts.oauth2
+    ) {
+
+        console.error(
+            "Google Identity Services belum termuat."
+        );
+
+        return;
+    }
+
 
     googleTokenClient =
-        google.accounts.oayth2.initTokenClient({
+        google.accounts.oauth2.initTokenClient({
 
             client_id: GOOGLE_CLIENT_ID,
-            scope: GOOGLE_CLIENT_ID,
-            callback: function(response){
 
-                if (response.error){
+            scope: GOOGLE_DRIVE_SCOPE,
+
+            callback: function(response) {
+
+                console.log(
+                    "Response Google:",
+                    response
+                );
+
+
+                if (response.error) {
 
                     console.error(
                         "Google OAuth Error:",
@@ -29,41 +57,85 @@ function initGoogleDriveAuth(){
                     );
 
                     alert(
-                        "Gagal menghubungkan Google Drive."
+                        "Gagal menghubungkan Google Drive.\n\n" +
+                        response.error
                     );
+
                     return;
                 }
+
 
                 googleAccessToken =
                     response.access_token;
 
-                    console.log(
-                        "Google  Drive berhasil terhubung."
-                    );
 
-                    alert(
-                        "Google Drive berhasil terhubung! ✅"
-                    );
+                console.log(
+                    "Google Access Token berhasil diterima."
+                );
+
+
+                alert(
+                    "Google Drive berhasil terhubung! ✅"
+                );
+
             }
+
         });
+
+
+    console.log(
+        "Google Drive OAuth siap ✅"
+    );
+
 }
 
-// ===========================================================
+
+
+// ==========================================
 // HUBUNGKAN GOOGLE DRIVE
-// ===========================================================
+// ==========================================
 
-function hubungkaanGoogleDrive(){
+function hubungkanGoogleDrive() {
 
-    if (!googleTokenClient){
+    console.log(
+        "Tombol Hubungkan Google Drive diklik."
+    );
+
+
+    // Kalau belum siap, coba inisialisasi lagi
+    if (!googleTokenClient) {
+
+        initGoogleDriveAuth();
+
+    }
+
+
+    if (!googleTokenClient) {
 
         alert(
-            "Google Drive belum siap."
+            "Google Drive belum siap.\n\n" +
+            "Coba refresh halaman."
         );
 
         return;
     }
 
+
     googleTokenClient.requestAccessToken({
+
         prompt: "consent"
+
     });
+
 }
+
+
+// ==========================================
+// PASTIKAN BISA DIPANGGIL DARI HTML
+// ==========================================
+
+window.initGoogleDriveAuth =
+    initGoogleDriveAuth;
+
+window.hubungkanGoogleDrive =
+    hubungkanGoogleDrive;
