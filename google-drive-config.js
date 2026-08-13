@@ -1522,16 +1522,13 @@ async function testUploadGoogleDrive() {
     function pastikanGoogleDriveTerhubung(){
 
         // Token masih aktif
-        if(
-            tokenGoogleMasihValid()
-        ) {
-            return Promise.resolve(
-            googleAccessToken
-            );
+        if(!googleTokenClient) {
+
+            return;
             
         }
-       
-
+    
+    }
     // Google OAuth belum siap
 
     if (googleTokenReject){
@@ -1581,7 +1578,7 @@ async function testUploadGoogleDrive() {
                     });
             }
         );
-    }
+    
     
 
 // ====================================================
