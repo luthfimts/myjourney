@@ -1447,9 +1447,8 @@ async function testUploadGoogleDrive() {
     // GOOGLE HARUS TERHUBUNG
     // ==========================================
 
-    if (
-        !tokenGoogleMasihValid()
-    ) {
+    if (!tokenGoogleMasihValid)
+    {
 
         alert(
 
