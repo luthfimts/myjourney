@@ -37,6 +37,51 @@ let googleTokenResolve = null;
 
 let googleTokenReject = null;
 
+// ======================================================
+// PULIHKAN TOKEN GOOGLE DARI SESSION STORAGE
+// ======================================================
+
+function pulihkankanTokenGoogle(){
+    const tokenTersimpan =
+        sessionStorage.getItem(
+            "googleDriveAccessToken"
+        );
+
+    const expiresTersimpan =
+        Number(
+            sessionStorage.getItem(
+                "googleDriveTokenExpiresAt"
+            )
+        );
+
+    if (
+        tokenTersimpan &&
+        expiresTersimpan &&
+        Date.now() < expiresTersimpan
+    ){
+        googleAccessToken =
+            tokenTersimpan;
+
+        
+            googleTokenExpiresAt =
+
+        console.log(
+            "Session Google Drive dipulihkan✅"
+        );
+
+        return true;
+    }
+
+    sessionStorage.removeItem(
+        "googleDriveTokenExpiresAt"
+    );
+
+    return false;
+}
+
+// Jalankan langsung saat file JS dimuat
+pulihkankanTokenGoogle();
+
 
 
 // ======================================================
@@ -218,14 +263,32 @@ function initGoogleDriveAuth() {
                         60000;
 
 
-                    console.log(
-                        "Google Drive OAuth berhasil ✅"
-                    );
+// ======================================
+// SIMPAN TOKEN KE SESSION STORAGE
+// ======================================
+
+    sessionStorage.setItem (
+        "googleDriveAccessToken",
+        String(
+            googleTokenExpiresAt
+        )
+    );
+
+    sessionStorage.setItem(
+        "googleDriveTokenExpiresAt",
+        String(
+            googleTokenExpiresAt
+        )
+    );
+
+      console.log(
+    "Google Drive OAuth berhasil ✅"
+   );
 
 
-                    selesaikanPermintaanToken(
+   selesaikanPermintaanToken(
 
-                        googleAccessToken,
+       googleAccessToken,
 
                         null
 
@@ -323,6 +386,21 @@ function resetTokenGoogle() {
 
     googleTokenExpiresAt =
         0;
+
+    googleFolderId =
+        null;
+    
+        sessionStorage.removeItem(
+            "googleDriveAccessToken"
+        );
+
+        sessionStorage.removeItem(
+            "googleDriveTokenExpiresAt"
+        );
+
+        console.log(
+            "Session Google Drive dihapus"
+        )
 
 }
 
