@@ -6,7 +6,91 @@ const GOOGLE_DRIVE_SCOPE =
 
 let googleAccessToken = null;
 let googleTokenClient = null;
+let googleFolderId = null;
 
+// =========================================
+// BUAT FOLDER MYJOURNEY DI GOOGLE DRIVE
+// =========================================
+
+async function buatFolderMyJourney() {
+    
+    if (!googleAccessToken){
+
+        alert(
+            "Google Drive belum terhubung."
+        );
+
+        return;
+    }
+
+    try{
+        const response =
+        await fetch(
+            "https://www.googleapis.com/drive/v3/files?fields=id,name",
+            {
+                method: "POST",
+                headers: {
+                    "Authorization":
+                    "Bearer" + googleAccessToken,
+
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    name: 
+                    "MyJourney",
+                    nimeType:
+                    "application/vnd.google-apps.folder" 
+                })
+            }
+        );
+
+        const data=
+            await response.json();
+
+        if (!response.ok){
+
+            console.error(
+                "Gagal membuat folder:",
+                data
+            );
+
+            alert(
+                "Gagal membuat folder MyJourney."
+            );
+
+            return;
+        }
+
+        googleFolderId =
+            data.id;
+
+        console.log(
+            "Folder MyJourney berhasil dibuat:",
+            googleFolderId
+        );
+
+        alert(
+            "Folder MyJourney berhasil dibuat di Google Drive! 📁"
+        );
+    }
+
+    catch(error){
+
+        console.error(
+            "Error membuat folder:",
+            error
+        );
+
+        alert(
+            "Terjadi kesalahan saat membuat folder."
+        );
+    }
+}
+
+window.buatFolderMyJourney =
+    buatFolderMyJourney;
 
 // ==========================================
 // INISIALISASI GOOGLE DRIVE
